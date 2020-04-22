@@ -7,17 +7,13 @@ output:
     code_folding: "show"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 \
 *Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher*
  
 The code is presented in a serie of Rmarkdown files with corresponding html knitted files. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.   
 \
 
-## Dependencies 
+# Dependencies 
 
 **qsubshcom**\
 Sections of the code in **bash** may be run directly on a high performance cluster thanks to the **qsubshcom** piece of software. (<https://github.com/zhilizheng/qsubshcom>)  
@@ -40,11 +36,11 @@ For bivariate models, the option is yet to be implemented in OSCA so we detail t
 **R**\
 Plots, some data management and penalised regression were performed using R3.3 to 3.6. See manuscript (or code) for full list of packages used.
 
-## Atlas files
+# Atlas files
 
 We created a bunch of useful files to facilitate the analysis, for example to prune out vertices outside of the cortex, to relate each vertex to a cortical/subcortical region... They are available in the **atlas** folder of this repository
  
-## General organisation of the working directory ${wd}
+# General organisation of the working directory ${wd}
 
 		/FS	
 Contains all outputs from MRI image processing, in particular:  
@@ -117,9 +113,7 @@ Results of morphometricity analyses varying smoothing of the *fsaverage* cortica
 Baseline covariates  		
 		
 		
-		
-		
-## Aliases used in the scripts
+# Aliases used in the scripts
 
 ${od}		*Output directory* 
 

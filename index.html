@@ -3001,8 +3001,8 @@ div.tocify {
 <p>The code is presented in a serie of Rmarkdown files with corresponding html knitted files. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.<br />
 <br />
 </p>
-<div id="dependencies" class="section level2">
-<h2><span class="header-section-number">0.1</span> Dependencies</h2>
+<div id="dependencies" class="section level1">
+<h1><span class="header-section-number">1</span> Dependencies</h1>
 <p><strong>qsubshcom</strong><br />
 Sections of the code in <strong>bash</strong> may be run directly on a high performance cluster thanks to the <strong>qsubshcom</strong> piece of software. (<a href="https://github.com/zhilizheng/qsubshcom" class="uri">https://github.com/zhilizheng/qsubshcom</a>)<br />
 In short, <strong>qsubshcom</strong> is a job submission wrapper that adapts automatically to the cluster system, which makes our code highly portable: you only need to change the paths to working directory or your own files.</p>
@@ -3018,12 +3018,12 @@ For bivariate models, the option is yet to be implemented in OSCA so we detail t
 <p><strong>R</strong><br />
 Plots, some data management and penalised regression were performed using R3.3 to 3.6. See manuscript (or code) for full list of packages used.</p>
 </div>
-<div id="atlas-files" class="section level2">
-<h2><span class="header-section-number">0.2</span> Atlas files</h2>
+<div id="atlas-files" class="section level1">
+<h1><span class="header-section-number">2</span> Atlas files</h1>
 <p>We created a bunch of useful files to facilitate the analysis, for example to prune out vertices outside of the cortex, to relate each vertex to a cortical/subcortical region… They are available in the <strong>atlas</strong> folder of this repository</p>
 </div>
-<div id="general-organisation-of-the-working-directory-wd" class="section level2">
-<h2><span class="header-section-number">0.3</span> General organisation of the working directory ${wd}</h2>
+<div id="general-organisation-of-the-working-directory-wd" class="section level1">
+<h1><span class="header-section-number">3</span> General organisation of the working directory ${wd}</h1>
 <pre><code>    /FS </code></pre>
 <p>Contains all outputs from MRI image processing, in particular:</p>
 <pre><code>    /FS                             
@@ -3082,8 +3082,8 @@ The different folders correspond to different covariates that have been regresse
 <p>Results of morphometricity analyses varying smoothing of the <em>fsaverage</em> cortical meshes (fwhm in 5 10 15 20 25) and the mesh complexity (fsav in fsaverage3 fsaverage4 fsaverage5 fsaverage6)<br />
 Baseline covariates</p>
 </div>
-<div id="aliases-used-in-the-scripts" class="section level2">
-<h2><span class="header-section-number">0.4</span> Aliases used in the scripts</h2>
+<div id="aliases-used-in-the-scripts" class="section level1">
+<h1><span class="header-section-number">4</span> Aliases used in the scripts</h1>
 <p>${od} <em>Output directory</em></p>
 <p>${fsdir} <em>FreeSurfer directory</em></p>
 <pre><code>    /bin

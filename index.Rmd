@@ -1,15 +1,16 @@
 ---
 title: "A unified framework for association and prediction from vertex-wise grey-matter structure"
-output: html_document
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-\
-\
-\
 \
 *Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher*
  

@@ -1,0 +1,319 @@
+"V1","V2","V3","V4"
+"Age_MRI","Demographics","Age","Age_MRI"
+"sexuses_datacoding_9_0_0","Demographics","Sex","sexuses_datacoding_9_f31_0_0"
+"volume_of_grey_matter_normalised_for_head_size_2_0","Brain 
+ measurement","Grey matter volume c/ head size","volume_of_grey_matter_normalised_for_head_size_f25005_2_0"
+"standing_height_2_0","Physical 
+ test","Height","standing_height_f50_2_0"
+"body_fat_percentage_0_0","Physical 
+ test","Body fat percentage","body_fat_percentage_f23099_0_0"
+"body_mass_index_bmi_2_0","Physical 
+ test","BMI","body_mass_index_bmi_f21001_2_0"
+"alcohol_intake_frequencyuses_datacoding_100402_2_0","Substance 
+ use","Alcohol intake","alcohol_intake_frequency_f1558_2_0"
+"prospective_memory_resultuses_datacoding_18_2_0","Cognition","Prospective memory","prospective_memory_result_f20018_2_0"
+"fluid_intelligence_score_2_0","Cognition","Fluid intelligence","fluid_intelligence_score_f20016_2_0"
+"smoking_statususes_datacoding_90_2_0","Substance 
+ use","Smoking Status","smoking_status_f20116_2_0"
+"weight_2_0","Physical 
+ test","Weight","weight_f21002_2_0"
+"volume_of_hippocampus_left_2_0","Brain 
+ measurement","Left hippocampus volume UKB","volume_of_hippocampus_left_f25019_2_0"
+"volume_of_hippocampus_right_2_0","Brain 
+ measurement","Right hippocampus volume UKB","volume_of_hippocampus_right_f25020_2_0"
+"volume_of_grey_matter_2_0","Brain 
+ measurement","Grey matter volume","volume_of_grey_matter_f25006_2_0"
+"age_completed_full_time_educationuses_datacoding_100306_2_0","Demographics","Age completed full time education","age_completed_full_time_education_f845_2_0"
+"number_in_householduses_datacoding_100291_2_0","Demographics","Number in household","number_in_household_f709_2_0"
+"diabetes_diagnosed_by_doctoruses_datacoding_100349_2_0","Other","Diabetes diagnosis","diabetes_diagnosed_by_doctoruses_datacoding_100349_f2443_2_0"
+"number_of_daysweek_walked_10_minutesuses_datacoding_100307_2_0","Physical 
+ test","Frequency 10mn walks","number_of_daysweek_walked_10_minutes_f864_2_0"
+"number_of_daysweek_of_moderate_physical_activity_10_minutesuses_datacoding_100291_2_0","Physical 
+ test","Frequency moderate activity","number_of_daysweek_of_moderate_physical_activity_10_minutes_f884_2_0"
+"number_of_daysweek_of_vigorous_physical_activity_10_minutesuses_datacoding_100291_2_0","Physical 
+ test","Frequency vigourous activity","number_of_daysweek_of_vigorous_physical_activity_10_minutes_f904_2_0"
+"cooked_vegetable_intakeuses_datacoding_100373_2_0","Diet","Cooked vegetables intake","cooked_vegetable_intake_f1289_2_0"
+"salad__raw_vegetable_intakeuses_datacoding_100373_2_0","Diet","Raw vegetables intake","salad_raw_vegetable_intake_f1299_2_0"
+"fresh_fruit_intakeuses_datacoding_100373_2_0","Diet","Fresh fruit intake","fresh_fruit_intake_f1309_2_0"
+"dried_fruit_intakeuses_datacoding_100373_2_0","Diet","Dried fruit intake","dried_fruit_intake_f1319_2_0"
+"bread_intakeuses_datacoding_100373_2_0","Diet","Bread intake","bread_intake_f1438_2_0"
+"cereal_intakeuses_datacoding_100373_2_0","Diet","Cereals intake","cereal_intake_f1458_2_0"
+"tea_intakeuses_datacoding_100373_2_0","Diet","Tea intake","tea_intake_f1488_2_0"
+"coffee_intakeuses_datacoding_100373_2_0","Diet","Coffee intake","coffee_intake_f1498_2_0"
+"water_intakeuses_datacoding_100373_2_0","Diet","water intake","water_intake_f1528_2_0"
+"oily_fish_intakeuses_datacoding_100377_2_0","Diet","Oily fish intake","oily_fish_intake_f1329_2_0"
+"nonoily_fish_intakeuses_datacoding_100377_2_0","Diet","Non-oily fish intake","nonoily_fish_intake_f1339_2_0"
+"processed_meat_intakeuses_datacoding_100377_2_0","Diet","Processed meat intake","processed_meat_intake_f1349_2_0"
+"poultry_intakeuses_datacoding_100377_2_0","Diet","Poultry intake","poultry_intake_f1359_2_0"
+"beef_intakeuses_datacoding_100377_2_0","Diet","Beef intake","beef_intake_f1369_2_0"
+"lambmutton_intakeuses_datacoding_100377_2_0","Diet","Lamb/mutton intake","lambmutton_intake_f1379_2_0"
+"pork_intakeuses_datacoding_100377_2_0","Diet","Pork intake","pork_intake_f1389_2_0"
+"cheese_intakeuses_datacoding_100377_2_0","Diet","Cheese intake","cheese_intake_f1408_2_0"
+"overall_acceleration_average_0_0","Physical 
+ test","Acceleration force","overall_acceleration_average_f90012_0_0"
+"basophill_percentage_2_0","Blood 
+ assay","% Basophill","basophill_percentage_f30220_2_0"
+"eosinophill_percentage_2_0","Blood 
+ assay","% eosinophill","eosinophill_percentage_f30210_2_0"
+"neutrophill_percentage_2_0","Blood 
+ assay","% neutrophill","neutrophill_percentage_f30200_2_0"
+"monocyte_percentage_2_0","Blood 
+ assay","% monocyte","monocyte_percentage_f30190_2_0"
+"lymphocyte_percentage_2_0","Blood 
+ assay","% lymphocyte","lymphocyte_percentage_f30180_2_0"
+"platelet_count_2_0","Blood 
+ assay","Platelet count","platelet_count_f30080_2_0"
+"haematocrit_percentage_2_0","Blood 
+ assay","Haematocrit %","haematocrit_percentage_f30030_2_0"
+"haemoglobin_concentration_2_0","Blood 
+ assay","Haemoglobin concentration","haemoglobin_concentration_f30020_2_0"
+"red_blood_cell_erythrocyte_count_2_0","Blood 
+ assay","Red blood cell count","red_blood_cell_erythrocyte_count_f30010_2_0"
+"white_blood_cell_leukocyte_count_2_0","Blood 
+ assay","White blood cell count","white_blood_cell_leukocyte_count_f30000_2_0"
+"overall_health_ratinguses_datacoding_100508_2_0","Other","Overall health rating","overall_health_rating_f2178_2_0"
+"seen_a_psychiatrist_for_nerves_anxiety_tension_or_depressionuses_datacoding_100349_2_0","Psychiatry","Seen psychiatrist for anx-dep","seen_a_psychiatrist_for_nerves_anxiety_tension_or_depression_f2100_2_0"
+"seen_doctor_gp_for_nerves_anxiety_tension_or_depressionuses_datacoding_100349_f2090_2_0","Psychiatry","Seen gp for anx-dep","seen_doctor_gp_for_nerves_anxiety_tension_or_depression_f2090_2_0"
+"handedness_chiralitylateralityuses_datacoding_100430_2_0","Other","Handedness","handedness_chiralitylaterality_f1707_2_0"
+"past_tobacco_smokinguses_datacoding_100348_2_0","Substance 
+ use","Past tobacco use","past_tobacco_smoking_f1249_2_0"
+"current_tobacco_smokinguses_datacoding_100347_2_0","Substance 
+ use","Current tobacco use","current_tobacco_smoking_f1239_2_0"
+"sleeplessness__insomniauses_datacoding_100343_2_0","Other","Sleeplessness - insomnia","sleeplessness_insomnia_f1200_2_0"
+"sleep_durationuses_datacoding_100291_2_0","Other","Sleep duration","sleep_duration_f1160_2_0"
+"time_spent_watching_television_tvuses_datacoding_100329_2_0","Other","Time spent watching television","time_spent_watching_television_tv_f1070_2_0"
+"average_total_household_income_before_taxuses_datacoding_100294_2_0","Demographics","Household income before tax","average_total_household_income_before_tax_f738_2_0"
+"townsend_deprivation_index_at_recruitment_0_0","Demographics","Townsend deprivation index","townsend_deprivation_index_at_recruitment_f189_0_0"
+"pulse_rate_automated_reading_2_0","Physical 
+ test","Pulse rate 1","pulse_rate_automated_reading_f102_2_0"
+"pulse_rate_automated_reading_2_1","Physical 
+ test","Pulse rate 2","pulse_rate_automated_reading_f102_2_1"
+"systolic_blood_pressure_manual_reading_2_1","Physical 
+ test","Systolic blood 1","systolic_blood_pressure_manual_reading_f93_2_1"
+"systolic_blood_pressure_manual_reading_2_0","Physical 
+ test","Systolic blood pressure 2","systolic_blood_pressure_manual_reading_f93_2_0"
+"diastolic_blood_pressure_manual_reading_2_0","Physical 
+ test","Diastolic blood pressure 1","diastolic_blood_pressure_manual_reading_f94_2_0"
+"diastolic_blood_pressure_manual_reading_2_1","Physical 
+ test","Diastolic blood pressure 2","diastolic_blood_pressure_manual_reading_f94_2_1"
+"heel_bone_mineral_density_bmd_0_0","Physical 
+ test","Heel bone mineral density bmd","heel_bone_mineral_density_bmd_f3148_0_0"
+"heel_bone_mineral_density_bmd_tscore_automated_0_0","Physical 
+ test","Heel bone mineral density tscore","heel_bone_mineral_density_bmd_tscore_automated_f78_0_0"
+"hip_circumference_2_0","Physical 
+ test","Hip circumference","hip_circumference_f49_2_0"
+"waist_circumference_2_0","Physical 
+ test","Waist circumference","waist_circumference_f48_2_0"
+"hand_grip_strength_left_2_0","Physical 
+ test","Hand grip strength left","hand_grip_strength_left_f46_2_0"
+"hand_grip_strength_right_2_0","Physical 
+ test","Hand grip strenght right","hand_grip_strength_right_f47_2_0"
+"Left-Hippocampus","Brain 
+ measurement","Left hippocampus volume","Left_Hippocampus"
+"Right-Hippocampus","Brain 
+ measurement","Right hippocampus volume","Right_Hippocampus"
+"Left-Amygdala","Brain 
+ measurement","Left amygdala volume","Left_Amygdala"
+"Right-Amygdala","Brain 
+ measurement","Right amygdala volume","Right_Amygdala"
+"ICV","Brain 
+ measurement","Intra-cranial volume","ICV"
+"part_of_a_multiple_birthuses_datacoding_100349_2_0","Other","Part of multiple birth","part_of_a_multiple_birth_f1777_2_0"
+"maximum_digits_remembered_correctly_0_0","Cognition","Max digits remembered 1","maximum_digits_remembered_correctly_f20240_0_0"
+"number_of_symbol_digit_matches_attempted_0_0","Cognition","Max digits attempted","number_of_symbol_digit_matches_attempted_f20195_0_0"
+"number_of_symbol_digit_matches_made_correctly_0_0","Cognition","Number correct symbol matches","number_of_symbol_digit_matches_made_correctly_f20159_0_0"
+"percent_correct_digit_matches_0_0","Cognition","% correct digit matches","maximum_digits_remembered_correctly_f4282_0_0"
+"mean_time_to_correctly_identify_matches_2_0","Cognition","Mean time correct matches","mean_time_to_correctly_identify_matches_f20023_2_0"
+"maximum_digits_remembered_correctly_0_0.1","Cognition","Max digits remembered 2","percent_correct_digit_matches_0_0"
+"total_errors_traversing_alphanumeric_path_trail_2_0_0","Cognition","Total errors traversing alphanumeric","total_errors_traversing_alphanumeric_path_trail_2_f20248_0_0"
+"total_errors_traversing_numeric_path_trail_1_0_0","Cognition","Total errors traversing numeric","total_errors_traversing_numeric_path_trail_1_f20247_0_0"
+"number_of_incorrect_matches_in_round_2_1","Cognition","Number incorrect matches 1","number_of_incorrect_matches_in_round_f399_2_1"
+"number_of_incorrect_matches_in_round_2_2","Cognition","Number incorrect matches 2","number_of_incorrect_matches_in_round_f399_2_2"
+"number_of_incorrect_matches_in_round_2_2","Cognition","Number incorrect matches 3","number_of_incorrect_matches_in_round_f399_2_3"
+"exposure_to_tobacco_smoke_at_homeuses_datacoding_100291_2_0","Substance 
+ use","Number days home passive smoking","exposure_to_tobacco_smoke_at_homeuses_datacoding_100291_f1269_2_0"
+"exposure_to_tobacco_smoke_outside_homeuses_datacoding_100291_2_0","Substance 
+ use","Number days outside passive smoking","exposure_to_tobacco_smoke_outside_homeuses_datacoding_100291_f1279_2_0"
+"number_of_cigarettes_previously_smoked_dailyuses_datacoding_100353_2_0","Substance 
+ use","Daily number of cigarettes previously smoked","number_of_cigarettes_previously_smoked_dailyuses_datacoding_100353_f2887_2_0"
+"number_of_cigarettes_currently_smoked_daily_current_cigarette_smokersuses_datacoding_100355_2_0","Substance 
+ use","Daily number cigarettes currently smoked","number_of_cigarettes_currently_smoked_daily_current_cigarette_smokersuses_datacoding_100355_f3456_2_0"
+"ever_stopped_smoking_for_6_monthsuses_datacoding_100349_2_0","Substance 
+ use","Ever stopped smoking for 6+ months","ever_stopped_smoking_for_6_monthsuses_datacoding_100349_f2907_2_0"
+"ever_addicted_to_any_substance_or_behaviouruses_datacoding_502_0_0","Substance 
+ use","Ever addicted to any substance or behaviour","ever_addicted_to_any_substance_or_behaviouruses_datacoding_502_f20401_0_0"
+"ever_addicted_to_alcoholuses_datacoding_502_0_0","Substance 
+ use","Ever addcited to alcohol","ever_addicted_to_alcoholuses_datacoding_502_f20406_0_0"
+"ever_addicted_to_a_behaviour_or_miscellanoususes_datacoding_502_0_0","Substance 
+ use","Ever addicted to behaviour or other","ever_addicted_to_a_behaviour_or_miscellanoususes_datacoding_502_f20431_0_0"
+"ever_addicted_to_illicit_or_recreational_drugsuses_datacoding_502_0_0","Substance 
+ use","Ever addicted to illicit/recreational drug","ever_addicted_to_illicit_or_recreational_drugsuses_datacoding_502_f20456_0_0"
+"ever_addicted_to_prescription_or_overthecounter_medicationuses_datacoding_502_0_0","Substance 
+ use","Ever addicted prescription drug","ever_addicted_to_prescription_or_overthecounter_medicationuses_datacoding_502_f20503_0_0"
+"amount_of_alcohol_drunk_on_a_typical_drinking_dayuses_datacoding_522_0_0","Substance 
+ use","Amount alcohol drunk typical day","amount_of_alcohol_drunk_on_a_typical_drinking_dayuses_datacoding_522_f20403_0_0"
+"ever_physically_dependent_on_alcoholuses_datacoding_502_0_0","Substance 
+ use","Ever physically dependent on alcohol","ever_physically_dependent_on_alcoholuses_datacoding_502_f20404_0_0"
+"frequency_of_drinking_alcoholuses_datacoding_521_0_0","Substance 
+ use","Frequency drinking alcohol","frequency_of_drinking_alcoholuses_datacoding_521_f20414_0_0"
+"impact_on_normal_roles_during_worst_period_of_anxietyuses_datacoding_510_0_0","Psychiatry","Impact on normal roles during worst anxiety","impact_on_normal_roles_during_worst_period_of_anxietyuses_datacoding_510_f20418_0_0"
+"impact_on_normal_roles_during_worst_period_of_depressionuses_datacoding_510_0_0","Psychiatry","Impact on normal roles during worst depression","impact_on_normal_roles_during_worst_period_of_depressionuses_datacoding_510_f20440_0_0"
+"ever_felt_worried_tense_or_anxious_for_most_of_a_month_or_longeruses_datacoding_502_0_0","Psychiatry","Ever felt worried/tense for a month","ever_felt_worried_tense_or_anxious_for_most_of_a_month_or_longeruses_datacoding_502_f20421_0_0"
+"age_at_first_episode_of_depressionuses_datacoding_513_0_0","Psychiatry","Age at first depressive episode","age_at_first_episode_of_depressionuses_datacoding_513_f20433_0_0"
+"ever_had_prolonged_feelings_of_sadness_or_depressionuses_datacoding_503_0_0","Psychiatry","Ever had prolonged feelings of sadness","ever_had_prolonged_feelings_of_sadness_or_depressionuses_datacoding_503_f20446_0_0"
+"ever_had_prolonged_loss_of_interest_in_normal_activitiesuses_datacoding_503_0_0","Psychiatry","Ever had prolonged loss of interest","ever_had_prolonged_loss_of_interest_in_normal_activitiesuses_datacoding_503_f20441_0_0"
+"ever_had_period_of_mania__excitabilityuses_datacoding_502_0_0","Psychiatry","Ever had period mania","ever_had_period_of_mania_excitabilityuses_datacoding_502_f20501_0_0"
+"ever_had_period_extreme_irritabilityuses_datacoding_502_0_0","Psychiatry","Ever had period irritability","ever_had_period_extreme_irritabilityuses_datacoding_502_f20502_0_0"
+"thoughts_of_death_during_worst_depressionuses_datacoding_502_0_0","Psychiatry","Thoughts of death during worst depression","thoughts_of_death_during_worst_depressionuses_datacoding_502_f20437_0_0"
+"lifetime_number_of_depressed_periodsuses_datacoding_511_0_0","Psychiatry","Lifetime number of depressed periods","lifetime_number_of_depressed_periodsuses_datacoding_511_f20442_0_0"
+"general_happinessuses_datacoding_537_0_0","Other","General happiness","general_happinessuses_datacoding_537_f20458_0_0"
+"general_happiness_with_own_healthuses_datacoding_537_0_0","Other","General Happiness in own health","general_happiness_with_own_healthuses_datacoding_537_f20459_0_0"
+"ever_believed_in_an_unreal_conspiracy_against_selfuses_datacoding_502_0_0","Psychiatry","Ever believed in unreal conspiracy","ever_believed_in_an_unreal_conspiracy_against_selfuses_datacoding_502_f20468_0_0"
+"ever_believed_in_unreal_communications_or_signsuses_datacoding_502_0_0","Psychiatry","Ever believed in unreal communication","ever_believed_in_unreal_communications_or_signsuses_datacoding_502_f20474_0_0"
+"ever_heard_an_unreal_voiceuses_datacoding_502_0_0","Psychiatry","Ever heard unreal voices","ever_heard_an_unreal_voiceuses_datacoding_502_f20463_0_0"
+"ever_seen_an_unreal_visionuses_datacoding_502_0_0","Psychiatry","Ever seen unreal vision","ever_seen_an_unreal_visionuses_datacoding_502_f20471_0_0"
+"ever_talked_to_a_health_professional_about_unusual_or_psychotic_experiencesuses_datacoding_502_0_0","Psychiatry","Ever talked to health professional about psychosis","ever_talked_to_a_health_professional_about_unusual_or_psychotic_experiencesuses_datacoding_502_f20477_0_0"
+"ever_thought_that_life_not_worth_livinguses_datacoding_535_0_0","Psychiatry","Ever thought that life not worth living","ever_thought_that_life_not_worth_livinguses_datacoding_535_f20479_0_0"
+"ever_selfharmeduses_datacoding_503_0_0","Psychiatry","Ever self harm","ever_selfharmeduses_datacoding_503_f20480_0_0"
+"ever_contemplated_selfharmuses_datacoding_535_0_0","Psychiatry","Ever contemplated self harm","ever_contemplated_selfharmuses_datacoding_535_f20485_0_0"
+"felt_hated_by_family_member_as_a_childuses_datacoding_532_0_0","Trauma 
+ stress","Felt hated by family as child","felt_hated_by_family_member_as_a_childuses_datacoding_532_f20487_0_0"
+"physically_abused_by_family_as_a_childuses_datacoding_532_0_0","Trauma 
+ stress","Physically abused by family as child","physically_abused_by_family_as_a_childuses_datacoding_532_f20488_0_0"
+"felt_loved_as_a_childuses_datacoding_532_0_0","Trauma 
+ stress","Felt loved as child","felt_loved_as_a_childuses_datacoding_532_f20489_0_0"
+"sexually_molested_as_a_childuses_datacoding_532_0_0","Trauma 
+ stress","Sexually molested as child","sexually_molested_as_a_childuses_datacoding_532_f20490_0_0"
+"severity_of_problems_due_to_mania_or_irritabilityuses_datacoding_516_0_0","Psychiatry","Severity of mania problems","severity_of_problems_due_to_mania_or_irritabilityuses_datacoding_516_f20493_0_0"
+"ever_sought_or_received_professional_help_for_mental_distressuses_datacoding_502_0_0","Psychiatry","Ever sought/received professinal help - mental distress","ever_sought_or_received_professional_help_for_mental_distressuses_datacoding_502_f20499_0_0"
+"ever_suffered_mental_distress_preventing_usual_activitiesuses_datacoding_502_0_0","Psychiatry","Ever suffered mental distress preventing usual activity","ever_suffered_mental_distress_preventing_usual_activitiesuses_datacoding_502_f20500_0_0"
+"recent_feelings_or_nervousness_or_anxietyuses_datacoding_504_0_0","Recent 
+ feelings","Nervousness - anxiety","recent_feelings_or_nervousness_or_anxietyuses_datacoding_504_f20506_0_0"
+"recent_feelings_of_inadequacyuses_datacoding_504_0_0","Recent 
+ feelings","Inadequacy","recent_feelings_of_inadequacyuses_datacoding_504_f20507_0_0"
+"recent_feelings_of_depressionuses_datacoding_504_0_0","Recent 
+ feelings","Depression","recent_feelings_of_depressionuses_datacoding_504_f20510_0_0"
+"recent_feelings_of_forebodinguses_datacoding_504_0_0","Recent 
+ feelings","Foreboding","recent_feelings_of_forebodinguses_datacoding_504_f20512_0_0"
+"recent_feelings_of_tiredness_or_low_energyuses_datacoding_504_0_0","Recent 
+ feelings","Tiredness","recent_feelings_of_tiredness_or_low_energyuses_datacoding_504_f20519_0_0"
+"recent_easy_annoyance_or_irritabilityuses_datacoding_504_0_0","Recent 
+ feelings","Annoyance - irritability","recent_easy_annoyance_or_irritabilityuses_datacoding_504_f20505_0_0"
+"recent_trouble_concentrating_on_thingsuses_datacoding_504_0_0","Recent 
+ feelings","Trouble concentrating","recent_trouble_concentrating_on_thingsuses_datacoding_504_f20508_0_0"
+"recent_inability_to_stop_or_control_worryinguses_datacoding_504_0_0","Recent 
+ feelings","Inability to stop worrying","recent_inability_to_stop_or_control_worryinguses_datacoding_504_f20509_0_0"
+"recent_poor_appetite_or_overeatinguses_datacoding_504_0_0","Recent 
+ feelings","Poor appetite - overeating","recent_poor_appetite_or_overeatinguses_datacoding_504_f20511_0_0"
+"recent_thoughts_of_suicide_or_selfharmuses_datacoding_504_0_0","Recent 
+ feelings","Toughts suicide - self harm","recent_thoughts_of_suicide_or_selfharmuses_datacoding_504_f20513_0_0"
+"recent_lack_of_interest_or_pleasure_in_doing_thingsuses_datacoding_504_0_0","Recent 
+ feelings","Lack interest - pleasure","recent_lack_of_interest_or_pleasure_in_doing_thingsuses_datacoding_504_f20514_0_0"
+"recent_trouble_relaxinguses_datacoding_504_0_0","Recent 
+ feelings","Trouble relaxing","recent_trouble_relaxinguses_datacoding_504_f20515_0_0"
+"recent_restlessnessuses_datacoding_504_0_0","Recent 
+ feelings","Reslessness","recent_restlessnessuses_datacoding_504_f20516_0_0"
+"recent_changes_in_speedamount_of_moving_or_speakinguses_datacoding_504_0_0","Recent 
+ feelings","Change in amount moving","recent_changes_in_speedamount_of_moving_or_speakinguses_datacoding_504_f20518_0_0"
+"recent_worrying_too_much_about_different_thingsuses_datacoding_504_0_0","Recent 
+ feelings","Worrying","recent_worrying_too_much_about_different_thingsuses_datacoding_504_f20520_0_0"
+"belittlement_by_partner_or_expartner_as_an_adultuses_datacoding_532_0_0","Trauma 
+ stress","Belittlement by partner or ex as adult","belittlement_by_partner_or_expartner_as_an_adultuses_datacoding_532_f20521_0_0"
+"been_in_a_confiding_relationship_as_an_adultuses_datacoding_532_0_0","Trauma 
+ stress","Been in confiding relationship","been_in_a_confiding_relationship_as_an_adultuses_datacoding_532_f20522_0_0"
+"physical_violence_by_partner_or_expartner_as_an_adultuses_datacoding_532_0_0","Trauma 
+ stress","Physical violence by partner or ex","physical_violence_by_partner_or_expartner_as_an_adultuses_datacoding_532_f20523_0_0"
+"sexual_interference_by_partner_or_expartner_without_consent_as_an_adultuses_datacoding_532_0_0","Trauma 
+ stress","Sexual interference by partner or ex","sexual_interference_by_partner_or_expartner_without_consent_as_an_adultuses_datacoding_532_f20524_0_0"
+"able_to_pay_rentmortgage_as_an_adultuses_datacoding_532_0_0","Trauma 
+ stress","Able to pay rent/mortgage","able_to_pay_rentmortgage_as_an_adultuses_datacoding_532_f20525_0_0"
+"been_involved_in_combat_or_exposed_to_warzoneuses_datacoding_533_0_0","Trauma 
+ stress","Been involved in combat - war zones","been_involved_in_combat_or_exposed_to_warzoneuses_datacoding_533_f20527_0_0"
+"victim_of_sexual_assaultuses_datacoding_533_0_0","Trauma 
+ stress","Victim sexual assault","victim_of_sexual_assaultuses_datacoding_533_f20531_0_0"
+"victim_of_physically_violent_crimeuses_datacoding_533_0_0","Trauma 
+ stress","Victim physically violent crime","victim_of_physically_violent_crimeuses_datacoding_533_f20529_0_0"
+"witnessed_sudden_violent_deathuses_datacoding_533_0_0","Trauma 
+ stress","Witnessed sudden violent death","witnessed_sudden_violent_deathuses_datacoding_533_f20530_0_0"
+"recentDepression","Recent 
+ feelings","Depression score","recentDepression"
+"recentAnxiety","Recent 
+ feelings","Anxiety score","recentAnxiety"
+"LThickness","Brain 
+ measurement","Left cortical thickness","LThickness"
+"RThickness","Brain 
+ measurement","Right cortical thickness","RThickness"
+"LSurfArea","Brain 
+ measurement","Left surface area","LSurfArea"
+"RSurfArea","Brain 
+ measurement","Right surface area","RSurfArea"
+"trouble_falling_or_staying_asleep_or_sleeping_too_muchuses_datacoding_504_0_0","Recent 
+ feelings","Sleeping too much / not enough","trouble_falling_or_staying_asleep_or_sleeping_too_muchuses_datacoding_504_f20517_0_0"
+"neuroticism_score_f20127_0_0","Other","Neuroticism score","neuroticism_score_f20127_0_0"
+"headaches_for_3_monthsuses_datacoding_100349_f3799_2_0","Other","Headaches 3mo+","headaches_for_3_monthsuses_datacoding_100349_f3799_2_0"
+"hearing_difficultyproblemsuses_datacoding_100631_f2247_2_0","Other","Hearing difficulty","hearing_difficultyproblemsuses_datacoding_100631_f2247_2_0"
+"hearing_difficultyproblems_with_background_noiseuses_datacoding_100349_f2257_2_0","Other","Hearing difficulty with background noises","hearing_difficultyproblems_with_background_noiseuses_datacoding_100349_f2257_2_0"
+"hearing_aid_useruses_datacoding_100352_f3393_2_0","Other","Hearing aid","hearing_aid_useruses_datacoding_100352_f3393_2_0"
+"tinnitususes_datacoding_100635_f4803_2_0_binary","Other","Tinnitus","tinnitususes_datacoding_100635_f4803_2_0_binary"
+"tinnitususes_datacoding_100635_f4803_2_0_present","Other","Current tinnitus","tinnitususes_datacoding_100635_f4803_2_0_present"
+"tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0","Other","Tinnitus severity","tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0"
+"wears_glasses_or_contact_lensesuses_datacoding_100352_f2207_2_0","Other","Wears glasses/contact","wears_glasses_or_contact_lensesuses_datacoding_100352_f2207_2_0"
+"time_spend_outdoors_in_summeruses_datacoding_100329_f1050_2_0","Other","Time spent outdoors summer","time_spend_outdoors_in_summer_f1050_2_0"
+"time_spent_outdoors_in_winteruses_datacoding_100329_f1060_2_0","Other","Time spent outdoors winter","time_spent_outdoors_in_winter_f1060_2_0"
+"time_spent_using_computeruses_datacoding_100329_f1080_2_0","Other","Time spent on computer","time_spent_using_computer_f1080_2_0"
+"time_spent_drivinguses_datacoding_100329_f1090_2_0","Other","Time spent driving","time_spent_driving_f1090_2_0"
+"morningevening_person_chronotypeuses_datacoding_100342_f1180_2_0","Other","Morning/Evening person","morningevening_person_chronotype_f1180_2_0"
+"daytime_dozing_sleeping_narcolepsyuses_datacoding_100346_f1220_2_0","Other","Day time dozing/sleeping","daytime_dozing_sleeping_narcolepsy_f1220_2_0"
+"breastfed_as_a_babyuses_datacoding_100349_f1677_2_0","Other","Breastfed as a baby","breastfed_as_a_baby_f1677_2_0"
+"maternal_smoking_around_birthuses_datacoding_100349_f1787_2_0","Other","Maternal smoking around birth","maternal_smoking_around_birth_f1787_2_0"
+"forced_vital_capacity_fvc_best_measure_f20151_0_0","Physical 
+ test","Forced vital capacity","forced_vital_capacity_fvc_best_measure_f20151_0_0"
+"forced_expiratory_volume_in_1second_fev1_best_measure_f20150_0_0","Physical 
+ test","Forced expiratory volume","forced_expiratory_volume_in_1second_fev1_best_measure_f20150_0_0"
+"caffeine_drink_within_last_houruses_datacoding_7_f3089_2_0","Other","Drank caffeine in the last hour","caffeine_drink_within_last_hour_f3089_2_0"
+"basal_metabolic_rate_f23105_0_0","Physical 
+ test","Basal metabolic rate","basal_metabolic_rate_f23105_0_0"
+"started_insulin_within_one_year_diagnosis_of_diabetesuses_datacoding_100349_f2986_2_0","Other","Started insulin within 1yr of diabetes","started_insulin_within_one_year_diagnosis_of_diabetesuses_datacoding_100349_f2986_2_0"
+"Number_mental_health_problems_diagnoses_f20544","Psychiatry","Number of mental health diagnoses","Number_mental_health_problems_diagnoses_f20544"
+"SocialAnxietySocialPhobia","Psychiatry","Social Anxiety","SocialAnxietySocialPhobia"
+"Schizophrenia","Psychiatry","Schizophrenia","Schizophrenia"
+"PsychosisNotSchizophrenia","Psychiatry","Psychosis (not schizophrenia)","PsychosisNotSchizophrenia"
+"PersonalityDisorder","Psychiatry","Personality disorder","PersonalityDisorder"
+"Phobia","Psychiatry","Phobias","Phobia"
+"PanicAttacks","Psychiatry","Panic attaks","PanicAttacks"
+"OCD","Psychiatry","OCD","OCD"
+"ManiaBipolar","Psychiatry","Mania / bipolar","ManiaBipolar"
+"Depression","Psychiatry","Diagnosed depression","Depression"
+"Bulimia","Psychiatry","Bulimia","Bulimia"
+"BingeEating","Psychiatry","Binge eating","BingeEating"
+"Autism","Psychiatry","Autism","Autism"
+"AnxietyGAD","Psychiatry","Generalised anxiety disorder","AnxietyGAD"
+"Anorexia","Psychiatry","Anorexia","Anorexia"
+"Agoraphobia","Psychiatry","Agoraphobia","Agoraphobia"
+"ADHD","Psychiatry","ADHD","ADHD"
+"MDD","Psychiatry","Major Depressive Disorder (PGC)","MDD"
+"percent_correct_digit_matches_0_0_binary","Cognition","All correct digit matches","percent_correct_digit_matches_0_0_binary"
+"prospective_memory_result_3points_f20018_2_0","Cognition","Prospective memory - 3 points","prospective_memory_result_3points_f20018_2_0"
+"A02B","Prescription drug","Peptic ulcer / reflux","A02B"
+"A10","Prescription drug","Diabetes","A10"
+"B01A","Prescription drug","Antithrombotic","B01A"
+"C01D","Prescription drug","Vasodilatators","C01D"
+"C02","Prescription drug","Hypertension","C02"
+"C03","Prescription drug","Diuretics","C03"
+"C07","Prescription drug","Beta-blockers","C07"
+"C08","Prescription drug","Calcium channel blockers","C08"
+"C09","Prescription drug","Renin-angiotensin","C09"
+"C10AA","Prescription drug","Statins","C10AA"
+"H03A","Prescription drug","Thyroid","H03A"
+"L04","Prescription drug","Immunosuppresants","L04"
+"M01A","Prescription drug","Anti-inflamatory / anti-rheumatic (non-steroids)","M01A"
+"M05B","Prescription drug","Bone structure mineralisation","M05B"
+"N02A","Prescription drug","Opioids","N02A"
+"N02BA","Prescription drug","Salicylic acid","N02BA"
+"N02BE","Prescription drug","Anilides","N02BE"
+"N02C","Prescription drug","Antimigraine","N02C"
+"N06A","Prescription drug","Antidepressants","N06A"
+"R03A","Prescription drug","Adrenergics / inhalants","R03A"
+"R03BA","Prescription drug","Glucocorticoids","R03BA"
+"R06A","Prescription drug","Antihistamines","R06A"
+"S01E","Prescription drug","Antiglaucoma","S01E"

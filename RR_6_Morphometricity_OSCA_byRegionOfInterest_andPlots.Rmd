@@ -1,0 +1,469 @@
+---
+title: "Morphometricity analysis by ROI"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Create list of vertices for each cortical and subcortical regions, for left and right hemispheres
+
+See *atlas* folder for the **fsaverage_vertex_labels_names_order2.txt** file 
+
+**You do not need to run this first section, unless you want to use a different atlas.** Here we used cortical regions defined by the Desikan atlas. We extracted from FreeSurfer the information relative to each vertex coordinates (may be useful for plotting) and ROI they belong to.  
+
+## Cortical ROIs
+
+```{R, message=FALSE, eval=F}
+label=read.table("atlas/fsaverage_vertex_labels_names_order2.txt", header=T, stringsAsFactors = F)
+label$RHLabel[which(is.na(label$RHLabel))]<-"unknown"
+label$LHLabel[which(is.na(label$LHLabel))]<-"unknown"
+
+range(table(label$RHLabel)) # ROI vary in term or number of vertices
+range(table(label$LHLabel)) # ROI vary in term or number of vertices
+
+# Modify vertex ID to match names in bod files
+label$VertexID=substr(label$VertexNum, 11, nchar(label$VertexNum))
+
+# LEFT
+for (roi in unique(label$LHLabel)){
+  vertices2Write=label$VertexID[which(label$LHLabel==roi)]
+write.table(paste0("lha_",vertices2Write), paste0("atlas/Vertices_", roi,"_lh_area_UKB.txt"), col.names = F, row.names = F, quote=F )
+write.table(paste0("lht_",vertices2Write), paste0("atlas/Vertices_", roi,"_lh_thickness_UKB.txt"), col.names = F, row.names = F, quote=F )
+}
+
+# RIGHT
+for (roi in unique(label$RHLabel)){
+  vertices2Write=label$VertexID[which(label$RHLabel==roi)]
+write.table(paste0("rha_",vertices2Write), paste0("atlas/Vertices_", roi,"_rh_area_UKB.txt"), col.names = F, row.names = F, quote=F )
+write.table(paste0("rht_",vertices2Write), paste0("atlas/Vertices_", roi,"_rh_thickness_UKB.txt"), col.names = F, row.names = F, quote=F )
+}
+```
+
+## Subcortical ROIs
+
+```{R, message=FALSE, eval=F}
+
+label=read.table("atlas/fsaverage_subcortical_vertices_label.txt", header=T, stringsAsFactors = F)
+range(table(label$subcvName))
+
+ROIS=c("Thalamus-Proper",  "Caudate", "Putamen","Pallidum","Hippocampus","Amygdala","Accumbens-area")
+
+# LEFT
+for (roi in ROIS){
+  vertices2Write=label$ProbeID[which(label$subcvName==paste0("Left-", roi))]
+write.table(paste0("LogJacs_",vertices2Write), paste0("atlas/Vertices_", roi,"_lh_LogJacs_UKB.txt"), col.names = F, row.names = F, quote=F )
+write.table(paste0("thick_",vertices2Write), paste0("atlas/Vertices_", roi,"_lh_thick_UKB.txt"), col.names = F, row.names = F, quote=F )
+}
+
+# RIGHT
+for (roi in ROIS){
+  vertices2Write=label$ProbeID[which(label$subcvName==paste0("Right-", roi))]
+write.table(paste0("LogJacs_",vertices2Write), paste0("atlas/Vertices_", roi,"_rh_LogJacs_UKB.txt"), col.names = F, row.names = F, quote=F )
+write.table(paste0("thick_",vertices2Write), paste0("atlas/Vertices_", roi,"_rh_thick_UKB.txt"), col.names = F, row.names = F, quote=F )
+}
+
+```
+
+# Create BRMs corresponding to each cortical and subcortical region
+
+## Cortical
+
+```{bash, message=FALSE, eval=FALSE}
+
+# Integrate loops on hemisphere and modality inside each job to limit the number of jobs submitted
+
+for ROI in lingual isthmuscingulate pericalcarine precuneus unknown postcentral precentral parsopercularis supramarginal superiorfrontal caudalmiddlefrontal bankssts inferiorparietal middletemporal lateraloccipital fusiform temporalpole inferiortemporal entorhinal parstriangularis rostralmiddlefrontal parsorbitalis cuneus superiorparietal parahippocampal rostralanteriorcingulate medialorbitofrontal lateralorbitofrontal superiortemporal insula caudalanteriorcingulate frontalpole posteriorcingulate paracentral transversetemporal 
+do 
+${bind}/qsubshcom " for hemi in lh rh |;
+do |;
+for moda in thickness area |;
+do |;
+"${bind}"/osca --befile "${wd}"/BodFiles/\${hemi}.\${moda}.fwhm0.UKB.vertexQC --extract-probe "${wd}"/atlas/Vertices_"${ROI}"_\${hemi}_\${moda}_UKB.txt --make-orm-bin --out "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM |;
+done |;
+done |; " 1 10G BRM_${ROI} 10:00:00 "-acct=UQ-IMB-CNSG" 
+done
+```
+
+## Subcortical
+
+```{bash, message=FALSE, eval=FALSE}
+
+for ROI in Thalamus-Proper Caudate Putamen Pallidum Hippocampus Amygdala Accumbens-area 
+do 
+${bind}/qsubshcom " for hemi in lh rh |;
+do |;
+for moda in thick LogJacs |;
+do |;
+"${bind}"/osca --befile "${wd}"/BodFiles/\${hemi}.\${moda}.fwhm0.UKB.vertexQC --extract-probe "${wd}"/atlas/Vertices_"${ROI}"_\${hemi}_\${moda}_UKB.txt --make-orm-bin --out "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM |;
+done |;
+done |; " 1 10G BRM_${ROI} 10:00:00 "-acct=UQ-IMB-CNSG" 
+done
+
+```
+
+# Extract values for BRM QC - enforce cut-off of 5SD
+
+## Start interactive job and open R
+
+```{bash, message=FALSE, eval=F}
+
+qsub -I -X -l select=1:ncpus=1:mem=20GB -l walltime=05:00:00 -A UQ-IMB-CNSG
+
+wd="working/directory"
+cd $wd
+module load R
+R
+
+```
+
+## Extract BRM  cut-off values
+
+```{r, message=FALSE, eval=F}
+
+source("RR_4.0_BRM_QC_functions.R")
+
+# CORTICAL
+for (ROI in c("lingual", "isthmuscingulate", "pericalcarine", "precuneus", "postcentral", "precentral", "parsopercularis", "supramarginal", "superiorfrontal", "caudalmiddlefrontal", "bankssts", "inferiorparietal", "middletemporal", "lateraloccipital", "fusiform", "temporalpole", "inferiortemporal", "entorhinal", "parstriangularis", "rostralmiddlefrontal", "parsorbitalis", "cuneus", "superiorparietal", "parahippocampal", "rostralanteriorcingulate", "medialorbitofrontal", "lateralorbitofrontal", "superiortemporal", "insula", "caudalanteriorcingulate", "frontalpole", "posteriorcingulate", "paracentral", "transversetemporal")){
+ 
+  vals=NULL
+  for (hemi in c("lh", "rh")){
+   for (moda in c("thickness", "area")){
+    
+brm=asBRM(ReadORMBin(paste0(hemi, "_", moda, "_", ROI, "_UKB_BRM")))
+vals=rbind(vals, c(mean(diag(brm)),var(diag(brm)), mean(brm[upper.tri(brm)]),var(brm[upper.tri(brm)]) , sqrt(var(brm[upper.tri(brm)]))*5 )  )
+ 
+  } }
+rownames(vals)=c(paste(rep("lh", 2), c("thickness", "area")) , paste(rep("rh", 2), c("thickness", "area")) )
+colnames(vals)=c("Mean - diag", "Var - diag", "Mean - off diag", "Var - off diag", "BRM cutoff")
+print(ROI)
+print(vals)
+write.table(vals[,5], paste0(ROI, "_BRM_cutoffs.txt"), sep="\t", col.names = F, row.names = F )
+}
+
+# SUBCORTICAL
+for (ROI in c("Thalamus-Proper", "Caudate", "Putamen", "Pallidum", "Hippocampus", "Amygdala", "Accumbens-area")){
+ 
+  vals=NULL
+  for (hemi in c("lh", "rh")){
+   for (moda in c("thick", "LogJacs")){
+    
+  brm=asBRM(ReadORMBin(paste0(hemi, "_", moda, "_", ROI, "_UKB_BRM")))
+  vals=rbind(vals, c(mean(diag(brm)),var(diag(brm)), mean(brm[upper.tri(brm)]),var(brm[upper.tri(brm)]) , sqrt(var(brm[upper.tri(brm)]))*5 )  )
+ 
+}
+}
+rownames(vals)=c(paste(rep("lh", 2), c("thickness", "area")) , paste(rep("rh", 2), c("thickness", "area")) )
+colnames(vals)=c("Mean - diag", "Var - diag", "Mean - off diag", "Var - off diag", "BRM cutoff")
+print(ROI)
+print(vals)
+write.table(vals[,5], paste0(ROI, "_BRM_cutoffs.txt"), sep="\t", col.names = F, row.names = F )
+}
+
+```
+
+# QC BRMs based on the files created
+
+## Cortical 
+
+```{bash, message=FALSE, eval=FALSE}
+
+for ROI in lingual isthmuscingulate pericalcarine precuneus unknown postcentral precentral parsopercularis supramarginal superiorfrontal caudalmiddlefrontal bankssts inferiorparietal middletemporal lateraloccipital fusiform temporalpole inferiortemporal entorhinal parstriangularis rostralmiddlefrontal parsorbitalis cuneus superiorparietal parahippocampal rostralanteriorcingulate medialorbitofrontal lateralorbitofrontal superiortemporal insula caudalanteriorcingulate frontalpole posteriorcingulate paracentral transversetemporal
+do 
+${bind}/qsubshcom " nrow=1 |;
+for hemi in lh rh |;
+do |;
+for moda in thickness area |;
+do |;
+cutof=\$(sed \"\${nrow}q;d\" "${ROI}"_BRM_cutoffs.txt) |;
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM --orm-cutoff \${cutof} --orm-cutoff-2sides --make-orm --out "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM_QC |;
+((nrow++)) |;
+echo \${nrow} |;
+done |;
+done |; " 1 4G BRM_QC_${ROI} 10:00:00 "-acct=UQ-IMB-CNSG" 
+done
+```
+
+## Cortical 
+
+```{bash, message=FALSE, eval=FALSE}
+
+for ROI in Thalamus-Proper Caudate Putamen Pallidum Hippocampus Amygdala Accumbens-area
+do 
+${bind}/qsubshcom " nrow=1 |;
+for hemi in lh rh |;
+do |;
+for moda in thick LogJacs |;
+do |;
+cutof=\$(sed \"\${nrow}q;d\" "${ROI}"_BRM_cutoffs.txt) |;
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM --orm-cutoff \${cutof} --orm-cutoff-2sides --make-orm --out "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM_QC |;
+((nrow++)) |;
+echo \${nrow} |;
+done |;
+done |; " 1 4G BRM_QC_${ROI} 1:00:00 "-acct=UQ-IMB-CNSG" 
+done
+
+```
+
+# Estimate ROI-morphometricity or association with each ROI
+
+The following example uses phenotypes regressed out for baseline and body size variables    
+
+We loop on modalities (area / thickness) and hemisphere inside the job to reduce charge on cluster : npheno x nROIs  jobs instead of npheno x nROIs x 8 jobs   
+
+**Note that we limit ourselves to phenotypes significant in the global morphometricity analysis to reduce computational cost**    
+
+## Cortical ROI associations
+
+```{bash, message=FALSE, eval=FALSE}
+
+od="working/directory/BREML_ROI_Bsln_bdsz"
+
+for ROI in lingual isthmuscingulate pericalcarine precuneus unknown postcentral precentral parsopercularis supramarginal superiorfrontal caudalmiddlefrontal bankssts inferiorparietal middletemporal lateraloccipital fusiform temporalpole inferiortemporal entorhinal parstriangularis rostralmiddlefrontal parsorbitalis cuneus superiorparietal parahippocampal rostralanteriorcingulate medialorbitofrontal lateralorbitofrontal superiortemporal insula caudalanteriorcingulate frontalpole posteriorcingulate paracentral transversetemporal
+  do 
+mkdir -p ${od}/${ROI}
+mkdir -p ${od}/${ROI}_job
+cd ${od}/${ROI}_job # avoids having too many log files with the output
+
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt) |;
+for hemi in lh rh |;
+do |;
+for moda in area thickness |;
+do |;
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM_QC --pheno  "${wd}"/Phenotypes15K/UKB_phenotypes_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt)_reg.txt --out "${od}"/"${ROI}"/NestedModel.\${hemi}.\${moda}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt).outliers.UKB --reml-maxit 10000 |;
+done |;
+done " 1 4G BREML_${ROI} 5:00:00 "-array=1-43 -acct=UQ-IMB-CNSG" 
+done
+```
+
+## Subcortical ROI associations
+
+```{bash, message=FALSE, eval=FALSE}
+
+od="working/directory/BREML_ROI_Bsln_bdsz"
+
+for ROI in Thalamus-Proper Caudate Putamen Pallidum Hippocampus Amygdala Accumbens-area
+  do 
+mkdir -p ${od}/${ROI}
+mkdir -p ${od}/${ROI}_job
+cd ${od}/${ROI}_job # Put all log files written by qsubshcom in the same directory
+
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt) |;
+for hemi in lh rh |;
+do |;
+for moda in LogJacs thick |;
+do |;
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/\${hemi}_\${moda}_"${ROI}"_UKB_BRM_QC --pheno  "${wd}"/Phenotypes15K/UKB_phenotypes_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt)_reg.txt --out "${od}"/"${ROI}"/NestedModel.\${hemi}.\${moda}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt).outliers.UKB --reml-maxit 10000 |;
+done |;
+done " 1 4G BREML_${ROI} 48:00:00 "-array=1-43 -acct=UQ-IMB-CNSG" 
+done
+
+```
+
+# Put all results together 
+
+## Interactive session 
+
+```{bash, message=FALSE, eval=F}
+
+qsub -I -X -l select=1:ncpus=1:mem=15GB -l walltime=05:00:00 -A UQ-IMB-CNSG
+
+wd="working/directory"
+cd $wd
+module load R
+R
+
+```
+
+## Loop on output files and extract values of interest
+
+```{r, message=FALSE, eval=F}
+
+signifUKB<-0.05/175
+
+formatedPhe=read.csv("UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv", stringsAsFactors = F)
+signi=read.table("UKB_Phenotypes_signif_Bslne_bdsz.txt")
+
+formatedPhe=formatedPhe[which(formatedPhe$V1 %in% signi$V1),]
+colnames(formatedPhe)=c("oldVar", "category", "variable_clean", "variable")
+formatedPhe=formatedPhe[order(formatedPhe$category),]
+
+# Initialise tables
+allvar<-matrix(NA, nrow = length(formatedPhe$variable), ncol=168)
+rownames(allvar)<-formatedPhe$variable
+allvar=as.data.frame(allvar)
+
+allp<-matrix(NA, nrow = length(formatedPhe$variable), ncol=168)
+rownames(allp)<-formatedPhe$variable
+allp=as.data.frame(allp)
+
+allse<-matrix(NA, nrow = length(formatedPhe$variable), ncol=168)
+rownames(allse)<-formatedPhe$variable
+allse=as.data.frame(allse)
+
+sample="UKB" # used in naming files
+
+colnumber=1
+# Loop on all ROI
+corticalROI=c("entorhinal", "parahippocampal", "temporalpole", "fusiform", "superiortemporal", "middletemporal","inferiortemporal", "transversetemporal", "bankssts","insula","lingual","pericalcarine", "cuneus","lateraloccipital","superiorfrontal", "caudalmiddlefrontal", "rostralmiddlefrontal",  "parstriangularis",  "parsorbitalis","parsopercularis","lateralorbitofrontal","medialorbitofrontal","frontalpole",  "paracentral",  "precentral", "postcentral", "supramarginal","superiorparietal", "inferiorparietal", "precuneus", "rostralanteriorcingulate","caudalanteriorcingulate", "posteriorcingulate","isthmuscingulate",  "unknown")
+
+brainRegion=c(rep("Temporal", 10), rep("Occipital", 4), rep("Frontal", 11), rep("Parietal", 5), rep("Cingulate", 4))
+
+for (mod in c("thickness", "area")){
+for (hemi in c("lh", "rh")){
+      for (ROI in corticalROI){
+for (phenotype in formatedPhe$variable){
+if (file.exists(paste0("BREML_ROI_Bsln_bdsz/", ROI, "/NestedModel",".",hemi,".",mod, ".", phenotype, ".outliers.", sample, ".hsq"))){
+T1<-read.table(paste0("BREML_ROI_Bsln_bdsz/", ROI, "/NestedModel",".",hemi,".",mod, ".", phenotype, ".outliers.", sample, ".hsq"),fill=T, row.names = 1, stringsAsFactors = F, header=T)
+
+allvar[phenotype,colnumber]<-as.numeric(T1[4,1])*100
+allp[phenotype,colnumber]<-as.numeric(T1[9,1])
+allse[phenotype,colnumber]<-as.numeric(T1[4,2])*100
+} }
+      colnames(allvar)[colnumber]=paste( ifelse(hemi=="lh", "Left", "Right"), mod, ROI )
+   colnumber = colnumber+1
+} } }
+
+# subcortical
+subcorticalROI=c("Thalamus-Proper","Caudate", "Putamen", "Pallidum", "Hippocampus", "Amygdala", "Accumbens-area")
+
+for (mod in c("thick", "LogJacs")){
+for (hemi in c("lh", "rh")){
+    for (ROI in subcorticalROI){
+for (phenotype in formatedPhe$variable){
+if (file.exists(paste0("BREML_ROI_Bsln_bdsz/", ROI, "/NestedModel",".",hemi,".",mod, ".", phenotype, ".outliers.", sample, ".hsq"))){
+T1<-read.table(paste0("BREML_ROI_Bsln_bdsz/", ROI, "/NestedModel",".",hemi,".",mod, ".", phenotype, ".outliers.", sample, ".hsq"),fill=T, row.names = 1, stringsAsFactors = F, header=T)
+allvar[phenotype,colnumber]<-as.numeric(T1[4,1])*100
+allp[phenotype,colnumber]<-as.numeric(T1[9,1])
+allse[phenotype,colnumber]<-as.numeric(T1[4,2])*100
+} }
+      colnames(allvar)[colnumber]=paste( ifelse(hemi=="lh", "Left", "Right"), ifelse(mod=="thick", "thickness", "curvature" ), ROI )
+   colnumber = colnumber+1
+} } }
+
+# Write tables 
+write.table(allvar, "allvar_table_UKB_Bsln_bdsz_ROIs.txt", sep="\t", quote=F)
+write.table(allse, "allse_table_UKB_Bsln_bdsz_ROIs.txt", sep="\t", quote=F)
+write.table(allp, "allp_table_UKB_Bsln_bdsz_ROIs.txt", sep="\t", quote=F)
+colSums(is.na(allvar))
+
+```
+
+# Plot using corrplot package
+
+## Format tables
+
+```{r, message=FALSE, eval=F}
+
+# Add fixed effect R2
+fixEff=read.csv("FixedEffects_UKB_15K_Jan2019Update.csv", stringsAsFactors = F)
+fixEff=fixEff[,c("Variable",  "r0" , "rage", "rsex" , "rbrain", "rbody"  )]
+# fixed eff for extra phenotypes
+fixEff$r2=rowSums(fixEff[,c("r0" , "rage", "rsex" , "rbrain",  "rbody" )])
+
+allvar$variable=rownames(allvar)
+allROI_fixedEff=merge(allvar, fixEff[,c("Variable", "r2")], by.x="variable", by.y="Variable", sort = F)
+
+# Correct for fixed effect R2
+for (iii in 1:length(formatedPhe$variable)){
+allROI_fixedEff[iii,2:169]=allROI_fixedEff[iii,2:169] * (1-allROI_fixedEff$r2[iii])
+}
+
+allROI_fixedEff$variable=NULL
+allROI_fixedEff$r2=NULL
+
+# Exclude columns of missing values and add rownames
+allvar0=as.matrix(allROI_fixedEff)
+rownames(allvar0)=formatedPhe$variable_clean
+
+allp0=as.matrix(allp)
+rownames(allp0)=formatedPhe$variable_clean
+
+toExclude=which(colSums(is.na(allvar))==length(formatedPhe$variable))
+toExclude
+allvar0=allvar0[,-toExclude]
+allp0=allp0[,-toExclude]
+
+# Change column names
+for (cn in 1:length(colnames(allvar0))){
+ colnames(allvar0)[cn]= tail(strsplit(colnames(allvar0),split=" ")[[cn]],1)
+}
+
+# Significance threshold
+signif_ROI=0.05/(58*176)
+
+allvar0[which(is.na(allvar0), arr.ind = T)]=0
+range(allvar0)   
+    
+# Set twinning results to 0 - not enough N
+allvar0["Part of multiple birth",]=0
+```
+
+## Generate plots
+
+```{r, message=FALSE, eval=F}
+
+library(corrplot)
+library(pBrackets)
+library(grDevices)
+
+png("Corplot_rB_signif_ordered_allVC_Bsln_bdsz.png", width = 80, height = 30, units = "cm", res = 300)
+
+corrplot(allvar0, is.corr = F,  tl.cex = 1 ,  tl.col = "black",  col=colorRampPalette(c("white","white", "#F0E442","#D55E00"))(100), method = "color", p.mat = allp0, sig.level = signif_ROI, insig = "blank", na.label = "square", na.label.col = "white",  tl.srt=90, cl.ratio = 0.05, addgrid.col = "grey", cl.lim=c(0,50), cl.cex = 1.3)
+
+vOffset=49 # This is a manual parameter to move the curly brackets at the top
+
+# Add left right CT subcort labels
+text(x = 17, y = vOffset+4, labels = "Left cortical thickness", col="grey",xpd = T)
+  brackets(1, vOffset+3, 34, vOffset+3,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+text(x = 17+35, y = vOffset+4, labels = "Right cortical thickness", col="grey",xpd = T)
+  brackets(35, vOffset+3, 68, vOffset+3,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+text(x = 17+69, y = vOffset+4, labels = "Left cortical area", col="grey",xpd = T)
+  brackets(69, vOffset+3, 102, vOffset+3,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+text(x = 17+103, y = vOffset+4, labels = "Right cortical area", col="grey",xpd = T)
+  brackets(103, vOffset+3, 136, vOffset+3,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+text(x = 137+7, y = vOffset+4, labels = "Subcortical thickness", col="grey",xpd = T)
+  brackets(137, vOffset+3, 150, vOffset+3,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+text(x = 150+7, y = vOffset+4, labels = "Subcortical area", col="grey",xpd = T)
+  brackets(151, vOffset+3, 164, vOffset+3,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+
+for (jjj in 1:4){
+for (iii in 1:length(unique(brainRegion))){
+text(x = mean(which(brainRegion==unique(brainRegion)[iii])) + (jjj-1)*34, y = vOffset+1, labels = unique(brainRegion)[iii], col="grey",xpd = T)
+  brackets(min(which(brainRegion==unique(brainRegion)[iii]))+ (jjj-1)*34, vOffset, max(which(brainRegion==unique(brainRegion)[iii]))+ (jjj-1)*34, vOffset,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+#text(x = mean(which(brainRegion==unique(brainRegion)[iii])), y = 48, '{', srt = -90, cex = 8, family = 'Helvetica Neue UltraLight')
+}}
+  for (iii in 1:length(unique(formatedPhe$category))){
+  rect(xleft = 0.5, ytop = dim(allvar0)[1]+1.5-min(which(formatedPhe$category==unique(formatedPhe$category)[iii])), ybottom = dim(allvar0)[1]+0.5-max(which(formatedPhe$category==unique(formatedPhe$category)[iii])), xright = 164.5 , lwd = 2 )
+}
+  text(x = 154-14, y = vOffset+1, labels = "Left", col="grey",xpd = T)
+  brackets(151-14, vOffset, 157-14, vOffset,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+  text(x = 161-14, y = vOffset+1, labels = "Right", col="grey",xpd = T)
+  brackets(158-14, vOffset, 164-14, vOffset,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+
+text(x = 154, y = vOffset+1, labels = "Left", col="grey",xpd = T)
+  brackets(151, vOffset, 157, vOffset,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+  text(x = 161, y = vOffset+1, labels = "Right", col="grey",xpd = T)
+  brackets(158, vOffset, 164, vOffset,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+dev.off()
+```
+
+## Write full table
+
+```{r, message=FALSE, eval=F}
+
+allvar02Write=allvar0
+# Format and write table of results
+for (jjj in 1:length(allvar0[1,])){
+  for (iii in 1:length(allvar0[,1])){
+    allvar02Write[iii,jjj]=paste0( signif(allvar0[iii,jjj],3), " (p=", formatC(allp0[iii,jjj], format = "e", digits = 1), ")")
+  }
+}
+write.csv(allvar02Write, "STX_UKB_allROIS_Bsln_bdsz_covariates.csv")
+
+```
+
+
+
+<br><br>

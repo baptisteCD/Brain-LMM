@@ -1,0 +1,174 @@
+---
+title: "Create files for OSCA analyses"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Convert text files to binary (bod) format
+
+```{bash, message=FALSE, eval=FALSE}
+
+mkdir -p ${wd}/BodFiles
+
+# Cortical files
+for hemi in lh rh
+do
+for moda in area thickness
+do
+${bind}/qsubshcom " "${bind}"/osca --tefile "${wd}"/FS/"${hemi}"."${moda}".fwhm0.UKB.txt --make-bod --no-fid --out "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB --thread-num 5 " 5 30G ${hemi}_${moda}_intoBod 10:00:00 "-acct=UQ-IMB-CNSG" 
+done
+done 
+
+# Subcortical
+for hemi in lh rh
+do
+for moda in thick LogJacs
+do
+${bind}/qsubshcom " "${bind}"/osca --efile "${wd}"/FS/"${hemi}"."${moda}".transposed.txt --make-bod --no-fid --out "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.vertexQC " 1 8G ${hemi}_${moda}_intoBod 10:00:00 "-acct=UQ-IMB-CNSG" 
+done
+done 
+
+```
+
+# Exclude vertices outside of cortex
+
+The VerticesToExclude files can be found in the atlas folder of the GitHub repository (*atlas* folder)  
+
+```{bash, message=FALSE, eval=FALSE}
+
+for hemi in lh rh
+do
+for moda in thickness area
+do
+${bind}/qsubshcom " "${bind}"/osca --befile "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB --exclude-probe "${wd}"/VerticesToExclude_"${hemi}"_"${moda}"_Cortex.txt --make-bod --out "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.vertexQC " 1 10G ${hemi}_${moda}_excludeVertices 10:00:00 "-acct=UQ-IMB-CNSG" 
+done
+done 
+
+```
+
+# Calculate Brain Relatedness Matrices (BRM)
+
+```{bash, message=FALSE, eval=FALSE}
+
+for hemi in lh rh
+do
+for moda in thickness area thick LogJacs
+do
+${bind}/qsubshcom " "${bind}"/osca --befile "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.vertexQC --make-orm-bin --out "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.BRM --thread-num 5 " 5 30G ${hemi}_${moda}_BRM_calculation 10:00:00 "-acct=UQ-IMB-CNSG" 
+done
+done 
+
+# Extract mean and variance per probe 
+for hemi in lh rh
+do
+for moda in thickness area thick LogJacs
+do
+${bind}/qsubshcom " "${bind}"/osca --befile "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.vertexQC --get-mean --get-variance --out "${wd}"/BodFiles/"${hemi}"."${moda}" " 1 8G ${hemi}_${moda}_mean_var 48:00:00 "-acct=UQ-IMB-CNSG" 
+done
+done 
+
+```
+
+# Combine files across measurement types (for BLUP analyses)
+
+## Requires to standardise the probes first
+
+For all other analyses, the vertex files do not need to be standardised or OSCA does it for you automatically
+
+```{bash, message=FALSE, eval=F}
+
+for hemi in lh rh
+do
+for moda in area thickness thick LogJacs
+do
+${bind}/qsubshcom " "${bind}"/osca --befile "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.vertexQC --std-probe --make-bod --out "${wd}"/BodFiles/${hemi}.${moda}.fwhm0.UKB.BLUP.STD " 1 8G ${hemi}_${moda}_STD_probes 02:00:00 "-acct=UQ-IMB-CNSG" 
+done
+done
+
+```
+
+## Merge all Bod files
+
+You will need a text file mybod.flist which contains the path/names of the bod files (standardised) you want to merge
+
+```{bash, message=FALSE, eval=F}
+
+${bind}/qsubshcom " "${bind}"/osca --befile-flist "${wd}"/mybod.flist --make-bod --out "${wd}"/BodFiles/UKB_allVertices " 1 8G BLUP_allVertices 02:00:00 "-acct=UQ-IMB-CNSG" 
+
+```
+
+# Merge BRMs 
+
+You will need a text file mergeBRM_All.txt which contains the path/names of the BRM you want to merge  
+
+```{bash, message=FALSE, eval=F}
+
+${bind}/qsubshcom " "${bind}"/osca --merge-orm "$wd"/mergeBRM_All.txt --make-orm --out "${wd}"/BodFiles/allVerticesBRM " 1 8G CombineBRMs 02:00:00 "-acct=UQ-IMB-CNSG" 
+```
+
+# Perform QC using the BRMs 
+
+This section uses a R script to open the BRMs, produce plots and calculate BRM off-diagonal cut-off to use in QC  
+
+```{bash, message=FALSE, eval=F}
+
+# Launch interactive session (syntax depends on your HPC, here using a PBSpro)
+qsub -I -X -l select=1:ncpus=1:mem=30GB -l walltime=05:00:00 -A UQ-IMB-CNSG
+
+wd="working/directory"
+cd $wd
+module load R
+R
+
+```
+
+# Example of running the R script on two BRMs
+
+```{R, message=FALSE, eval=F}
+
+source("RR_4.0_BRM_QC_functions.R")
+
+# Get variance of diagonal and off-diagonal elements
+vals=NULL
+IDs2ExDiag=NULL
+  for (BRM in c("allVerticesBRM", "allVerticesBRM_QC")){
+  brm=asBRM(ReadORMBin(paste0( moda)))
+  vals=rbind(vals, c(mean(diag(brm)),var(diag(brm)), mean(brm[upper.tri(brm)]),var(brm[upper.tri(brm)]) , sqrt(var(brm[upper.tri(brm)]))*5 , min(brm[upper.tri(brm)]), max(brm[upper.tri(brm)]) ) )
+  print(moda)
+  png(paste0("HistogramBRM_", BRM, ".png"), width = 20, height = 10, units = "cm", res = 400)
+  par(mfrow=c(1,2))
+  hist(diag(brm), main = paste0( BRM, " BRM diagonal"), breaks=500 )
+  hist(brm[upper.tri(brm)], main = paste0(BRM, " BRM diagonal"), breaks=5000 )
+  dev.off()
+
+}
+rownames(vals)=c("allVerticesBRM", "allVerticesBRM_QC")
+colnames(vals)=c("Mean - diag", "Var - diag", "Mean - off diag", "Var - off diag", "BRM cutoff", "min off-diag", "max off-diag")
+print(vals)
+
+# FYI : BRM description from our "replication UKB sample, N about 5K"
+# I found that those values were rather stable across samples
+
+#          Mean - diag  Var - diag Mean - off diag Var - off diag BRM cutoff     min off-diag max off-diag
+#allVerticesBRM      1.0000000 0.020123953   -0.0002192982   0.0017715966  0.2104517  -0.4211293    0.6721468
+#allVerticesBRM_QC   0.9654818 0.009724773    0.0005558369   0.0008534802  0.1460719  -0.2206390    0.2027178
+
+#See also QC_BRM_outliers() function for QC used in the discovery sample
+
+```
+
+# Enforce cutoff on off-diagonal elements
+
+In this article (replication) we used a cutoff a 5SD from mean but this results in a quite stringent QC  
+
+```{bash, message=FALSE, eval=F}
+
+
+${bind}/qsubshcom " "${bind}"/osca --reml --orm "${wd}"/allVerticesBRM --orm-cutoff 0.21 --orm-cutoff-2sides --make-orm --out "${wd}"/allVerticesBRM_QC " 1 4G BRM_QC 4:00:00 "-acct=UQ-IMB-CNSG" 
+
+```
+
+<br><br>

@@ -1,0 +1,120 @@
+---
+title: "Processing T1w + T2 FLAIR UKBiobank MRI images"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Unzip MRI images downloaded using the UKB tools
+
+Note that we dowloaded the MRI images by batches of 500 (maximum number of download using **ukbfetch**)  
+Each batch is numbered and stored in a separate folder called *batchXX*  
+The .lis files were created by **ukbfetch** at the end of each dowload  
+
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do
+${bind}/qsubshcom " echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${medici}"/T1/raw/batch"${batch}"/T1_fetch_batch"${batch}".lis) |;
+file=\$(sed -n \"\${TASK_ID}{p;q}\" "${medici}"/T1/raw/batch"${batch}"/T1_fetch_batch"${batch}".lis) |;
+ID=\${file:0:7} |;
+echo \${file} |;
+echo \${ID} |;
+mkdir -p "${wd}"/FS/batch"${batch}" |;
+mkdir -p "${wd}"/T1/unzip/batch"${batch}"/\${ID}/ |;
+unzip -n "${medici}"/T1/raw/batch"${batch}"/\${ID}_20252_2_0.zip -d "${wd}"/T1/unzip/batch"${batch}"/\${ID}/ |;
+for i in `seq 1 "${batch}"` |;
+    do |;
+        if [ -e "${medici}"/T2/raw/batch\${i}/\${ID}_20253_2_0.zip ] |;
+        then |;
+        echo "${medici}"/T2/raw/batch\${i}/\${ID}_20253_2_0.zip |;
+        mkdir -p "${wd}"/T2/unzip/batch"${batch}"/\${ID}/ |;
+                unzip -n "${medici}"/T2/raw/batch\${i}/\${ID}_20253_2_0.zip -d "${wd}"/T2/unzip/batch"${batch}"/\${ID}/  |;
+        		fi |;
+	done	" 1 4G Unzip_batch_${batch} 48:00:00 "-array=1-500 -acct=UQ-IMB-CNSG" 
+done
+
+```
+
+# Processing of T1 and T2 images
+
+FreeSurfer 6.0 recon-all processing  
+T1w and T2 FLAIR are processed together if both are available  
+Otherwise T1w are processed by themselves  
+  
+*.mgh* surface files are then converted into *.asc* readable text files  
+  
+ENIGMA-shape processing is performed to extract subcortical structure  
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do
+${bind}/qsubshcom " echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${medici}"/T1/raw/batch"${batch}"/T1_fetch_batch"${batch}".lis) |;
+file=\$(sed -n \"\${TASK_ID}{p;q}\" "${medici}"/T1/raw/batch"${batch}"/T1_fetch_batch"${batch}".lis) |;
+ID=\${file:0:7} |;
+echo \${file} |;
+echo \${ID} |;
+mkdir -p "${wd}"/FS/batch"${batch}" |;
+mkdir -p "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/ |;
+mkdir -p "${wd}"/FS/ENIGMAshapeResults/batch"${batch}"/\${ID}/ |;
+SUBJECTS_DIR=\"/gpfs1/scratch/group30days/cnsg_park/uqbcouvy/UKB_MRI_may18/FS/batch"${batch}"/\" |;
+if [ -e "${wd}"/T2/unzip/batch"${batch}"/\${ID}/T2_FLAIR/T2_FLAIR_unbiased_brain.nii.gz ] |;
+then |;
+"${fsdir}"/bin/recon-all -subject \${ID} -i "${wd}"/T1/unzip/batch"${batch}"/\${ID}/T1/T1_orig_defaced.nii.gz -T2 "${wd}"/T2/unzip/batch"${batch}"/\${ID}/T2_FLAIR/T2_FLAIR_orig_defaced.nii.gz -T2pial -all -qcache  |;
+else |;
+"${fsdir}"/bin/recon-all -subject \${ID} -i "${wd}"/T1/unzip/batch"${batch}"/\${ID}/T1/T1_orig_defaced.nii.gz  -all -qcache   |;
+fi |;
+"${fsdir}"/bin/mris_convert -c "${wd}"/FS/batch"${batch}"/\${ID}/surf/lh.area.fwhm0.fsaverage.mgh "${fsdir}"/subjects/fsaverage/surf/lh.orig "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/lh.area.fwhm0.fsaverage.asc |;
+"${fsdir}"/bin/mris_convert -c "${wd}"/FS/batch"${batch}"/\${ID}/surf/rh.area.fwhm0.fsaverage.mgh "${fsdir}"/subjects/fsaverage/surf/rh.orig "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/rh.area.fwhm0.fsaverage.asc |;
+"${fsdir}"/bin/mris_convert -c "${wd}"/FS/batch"${batch}"/\${ID}/surf/lh.thickness.fwhm0.fsaverage.mgh "${fsdir}"/subjects/fsaverage/surf/lh.orig "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/lh.thickness.fwhm0.fsaverage.asc |;
+"${fsdir}"/bin/mris_convert -c "${wd}"/FS/batch"${batch}"/\${ID}/surf/rh.thickness.fwhm0.fsaverage.mgh "${fsdir}"/subjects/fsaverage/surf/rh.orig "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/rh.thickness.fwhm0.fsaverage.asc |;
+perl "${bind}"/ENIGMA_shape/MedialDemonsShared/bin/Medial_Demons_shared.pl "${wd}"/FS/batch"${batch}"/\${ID}/mri/aseg.mgz 10 11 12 13 17 18 26 49 50 51 52 53 54 58 "${wd}"/FS/batch"${batch}"/\${ID}/ENIGMA_shape/ "${bind}"/ENIGMA_shape/MedialDemonsShared "${fsdir}"/bin |;
+rsync -r "${wd}"/FS/batch"${batch}"/\${ID}/ENIGMA_shape/* "${wd}"/FS/ENIGMAshapeResults/batch"${batch}"/\${ID}/ |; 
+rsync -r "${wd}"/FS/batch"${batch}"/\${ID}/stats/* "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/ |;
+rsync -r "${wd}"/FS/batch"${batch}"/\${ID}/surf/*.mgh "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/ |;
+" 1 4G MRI_processing_batch${batch} 48:00:00 "-array=1-500 -acct=UQ-IMB-CNSG" 
+done
+
+# If space or number of files is a limitation, you can delete all FreeSurfer files at the end of the processing by adding the extra command: 
+rm -r "${wd}"/FS/batch"${batch}"/\${ID}
+
+# This leaves you with the contents of FS/ENIGMAshapeResults and FS/FSresults only, which contain everything you need for the analyses.
+
+```
+
+# Check completion of image processing  
+
+Creates files *IDs_rerun_batch$batch.txt* that contain IDs of participants for which processing did not complete  
+You may want to re-run processing for those individuals or use this script to check nothing happened to the job  
+
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do 
+touch $wd/FS/IDs_rerun_batch$batch.txt
+
+for file in $(awk -F" " 'NR>1 {print $1}' ${medici}/T1/raw/batch${batch}/T1_fetch_batch${batch}.lis)
+do
+ID=${file:0:7}
+nb=$(ls ${wd}/FS/FSresults/batch${batch}/${ID}/*.asc | wc -l)
+if [ ${nb} -lt 4 ]
+then
+if [ ! -d ${wd}/T1/unzip/batch${batch}/$ID/T1/unusable/ ]
+then
+echo "Processing fail investigate"
+echo ${ID} 
+echo ${nb}
+echo ${ID} >> $wd/FS/IDs_rerun_batch$batch.txt
+fi
+fi
+done
+
+```
+
+
+<br><br>

@@ -1,0 +1,266 @@
+---
+title: "Bivariate analyses to estimate grey-matter correlation"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Open data and subset into discovery and replication
+
+```{R, message=FALSE, eval=F}
+
+TT=read.csv("UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv")
+# Note, I use read.csv here, which is a bit slow. Though, I found that using read_csv makes a df and does not allow to call TT[,columnName]
+
+```
+
+# Write all pairwise phenotypes 
+
+The aim of this code section is to write bivariate phenotype files that have the form **eid eid pheno1 pheno2** which will be read in OSCA to perform bivariate analyses  
+
+We restrict ourselves to phenotypes with significant morphometricity  
+
+```{R, message=FALSE, eval=F}
+
+# Phenotype names
+phe=read.csv("UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv", stringsAsFactors = F)
+
+# List of significant variables (correcting from baseline and body size variables)
+signi=read.table("UKB_Phenotypes_signif_Bslne_bdsz.txt")
+
+# Subset and get rid of covariates, for which bivariate models do not make sense
+phe=phe[which(phe$V4 %in% signi$V1),]
+phe=phe[-which(phe$V4 %in% c("Age_MRI", "weight_f21002_2_0",  "body_mass_index_bmi_f21001_2_0", "standing_height_f50_2_0", "sexuses_datacoding_9_f31_0_0")),]
+
+# Loop and write files of phenotypes pairs
+# We also store the list of of pairs of phenotypes that correspond to file names to use in the loop for parallel computing
+var2write<-phe$V4
+
+bivarList=NULL
+# Bivariate files ICV regressed
+for (iii in 1:length(var2write)){
+  print(iii)
+  for (jjj in (iii+1):length(var2write)){
+    var1<-as.character(var2write[iii])
+    var2<-as.character(var2write[jjj])
+    write.table(TT[,c("eid", "eid", paste0(var1, "_regBB"), paste0(var2, "_regBB"))],paste0("UKB_phenotypes_bivariate_reg_Bsln_bdsz/",var1, "_", var2, ".txt" ), sep="\t", row.names=F, col.names=F , quote=F)
+bivarList<-rbind(bivarList, paste0(var1, "_", var2))
+
+  }
+}
+
+length(bivarList) # 53*52/2 = 1378 models to run
+# Write list of pairwise combinations for loop
+write.table(bivarList, "UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt", col.names = F, row.names = F, quote = F)
+
+```
+
+# Run bivariate models in GCTA
+
+**As bivariate analysis is not yet implemented in OSCA, we use GCTA. The trick is to rename the BRMs so GCTA sees them as GRM (genetic relatedness matrices).**  
+GCTA also allows for multi-tread for faster computation (here 5 cpus per job)
+
+```{bash, message=FALSE, eval=F}
+
+od="working/directory/BREML_bivariate_reg_Bsln_bdsz"
+
+cd ${wd}/BodFiles/
+cp allVerticesBRM_QC.orm.bin allVerticesBRM_QC.grm.bin
+cp allVerticesBRM_QC.orm.id allVerticesBRM_QC.grm.id
+cp allVerticesBRM_QC.orm.N.bin allVerticesBRM_QC.grm.N.bin
+
+cd ${od}
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt) |;  "${bind}"/gcta64 --reml-bivar 1 2 --grm-bin "${wd}"/BodFiles/allVerticesBRM_QC --pheno  "${wd}"/Phenotypes15K_Jan2019Update/UKB_phenotypes_bivariate_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).txt --out  "${od}"/BivModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).outliers.UKB --reml-maxit 10000 --reml-bivar-lrt-rg 0 --thread-num 5 " 5 20G GREML_all 48:00:00 "-array=1-1378 -acct=UQ-IMB-CNSG" 
+
+```
+
+# Extract rGM and phenotypic correlations
+
+```{r, message=FALSE, eval=F}
+
+# Rename columns to make code more readable
+colnames(phe)=c("old_var" ,"category", "variable_clean", "my_var")
+
+# Initialise - rGM matrices
+rB<-matrix(data = NA, ncol =length(phe$my_var), nrow = length(phe$my_var) )
+colnames(rB)<-phe$variable_clean
+rownames(rB)<-phe$variable_clean
+rBpval<-rB
+rBSE<-rB
+
+# Initialise - Phenotypic correlations
+rP<-rB
+rPpval<-rB
+rPSE<-rB
+
+# We need to store B1 and B2 (variance components) to calculate the residual correlation
+BVC=matrix(data = NA, nrow =length(phe$my_var), ncol = 1 )
+rownames(BVC)<-phe$variable_clean
+
+# Loop on variable pairs and store values of interest
+for (iii in 1:(length(phe$my_var)-1) ){
+  for (jjj in (iii+1):length(phe$my_var)){
+
+     var1<-phe$my_var[iii]
+     var2<-phe$my_var[jjj]
+     # rGM
+     if(file.exists(paste0("BREML_bivariate_reg_Bsln_bdsz/BivModel.",var1, "_", var2, ".outliers.UKB.hsq"))){
+out<-read.table(paste0("BREML_bivariate_reg_Bsln_bdsz/BivModel.",var1, "_", var2, ".outliers.UKB.hsq"), fill=T, stringsAsFactors = F)
+rB[phe$variable_clean[iii], phe$variable_clean[jjj]]<-out[12,2]
+rBpval[phe$variable_clean[iii], phe$variable_clean[jjj]]<-out[19,2]
+ rBSE[phe$variable_clean[iii], phe$variable_clean[jjj]]<-out[12,3]  
+     } else {
+      if(file.exists(paste0("BREML_bivariate_reg_Bsln_bdsz/BivModel.",var2, "_", var1, ".outliers.UKB.hsq"))){
+  out<-read.table(paste0("BREML_bivariate_reg_Bsln_bdsz/BivModel.",var2, "_", var1, ".outliers.UKB.hsq"), fill=T, stringsAsFactors = F)
+rB[phe$variable_clean[iii], phe$variable_clean[jjj]]<-out[12,2]
+rBpval[phe$variable_clean[iii], phe$variable_clean[jjj]]<-out[19,2]
+ rBSE[phe$variable_clean[iii], phe$variable_clean[jjj]]<-out[12,3]     
+       } }
+     
+# Get phenotypic correlation from written phenotype files too
+if(file.exists(paste0("UKB_phenotypes_bivariate_reg_Bsln_bdsz/",var1, "_", var2, ".txt"))){
+     dat=read.table(paste0("UKB_phenotypes_bivariate_reg_Bsln_bdsz/",var1, "_", var2, ".txt"))
+     ct=cor.test(dat$V3, dat$V4)
+     rP[phe$variable_clean[iii], phe$variable_clean[jjj]]<-ct$estimate
+  rPpval[phe$variable_clean[iii], phe$variable_clean[jjj]]<-ct$p.value
+   rPSE[phe$variable_clean[iii], phe$variable_clean[jjj]]<-sqrt( (1-ct$estimate**2) / ct$parameter )
+} else {
+  if(file.exists(paste0("UKB_phenotypes_bivariate_reg_Bsln_bdsz/",var2, "_", var1, ".txt"))){
+    dat=read.table(paste0("UKB_phenotypes_bivariate_reg_Bsln_bdsz/",var2, "_", var1, ".txt"))
+     ct=cor.test(dat$V3, dat$V4)
+  rP[phe$variable_clean[iii], phe$variable_clean[jjj]]<-ct$estimate
+  rPpval[phe$variable_clean[iii], phe$variable_clean[jjj]]<-ct$p.value
+  rPSE[phe$variable_clean[iii], phe$variable_clean[jjj]]<-sqrt( (1-ct$estimate**2) / ct$parameter )
+}
+  
+}
+  }
+  BVC[phe$variable_clean[iii]]=as.numeric(out[10,2])
+}
+
+# Write matrices and initialise plot
+write.table(rB, "rB_correlation_matrix_outliers_Bsln_bdsz.txt", col.names=T, row.names = F)
+write.table(rBpval, "rB_pvalues_correlation_matrix_outliers_Bsln_bdsz.txt", col.names=T, row.names = F)
+write.table(rBSE, "rB_SE_correlation_matrix_outliers_Bsln_bdsz.txt", col.names=T, row.names = F)
+
+write.table(rP, "rP_correlation_matrix_outliers_Bsln_bdsz.txt", col.names=T, row.names = F)
+write.table(rPpval, "rP_pvalues_correlation_matrix_outliers_Bsln_bdsz.txt", col.names=T, row.names = F)
+write.table(rPSE, "rP_SE_correlation_matrix_outliers_Bsln_bdsz.txt", col.names=T, row.names = F)
+
+```
+
+# Calculate residual correlations
+
+findVCOVmatFromGCTAOutput() is a R function that extract the matrix of variance covariace of model estimates from *qsubshcom* log files  
+
+```{r, message=FALSE, eval=F}
+
+# Load functions to find matrix of var-covar of estimates and calculate the rE and SE 
+source("RR_7.0_rE_SE_functions.R")
+
+# Calculate residual correlations
+rE<-matrix(data = NA, ncol =length(phe$my_var), nrow = length(phe$my_var) )
+colnames(rE)<-phe$my_var
+rownames(rE)<-phe$my_var
+rESE<-rE
+rEp<-rE
+
+# Loop and calculate residual correlation and its SE
+for (iii in 1:(length(phe$my_var)-1) ){
+  print(iii)
+  for (jjj in (iii+1):length(phe$my_var)){
+    var1<-phe$my_var[iii]
+     var2<-phe$my_var[jjj]
+     infoo=findVCOVmatFromGCTAOutput(var1, var2, path = "BREML_bivariate_reg_Bsln_bdsz/job_reports/") 
+     if (!is.null(infoo)){
+  rE[var1,var2]=infoo[6,8]/sqrt(infoo[5,8]*infoo[4,8])
+  rESE[var1,var2]=seRgFullApprox(VCX = infoo[5,8], VCY = infoo[4,8], CovXY = infoo[6,8], Var_CovXY = infoo[6,6], Var_VCX = infoo[4,4], Var_VCY = infoo[5,5], Cov_CovXY_VCX = infoo[4,6], Cov_CovXY_VCY = infoo[5,6], Cov_VCX_VCY = infoo[4,5])
+     }
+    }
+}
+
+# Calculate p-value
+for (iii in 1:(length(phe$my_var)-1) ){
+  print(iii)
+  for (jjj in (iii+1):length(phe$my_var)){
+    var1<-phe$my_var[iii]
+     var2<-phe$my_var[jjj]
+rEp[var1,var2]= (1 - pchisq( (rE[var1,var2] /rESE[var1,var2] )**2 , df = 1))/2
+    }
+}
+
+write.table(rE, "rE_correlation_matrix_outliers_Bsln_bdsz_15K.txt", col.names=T, row.names = F)
+write.table(rEp, "rE_pvalues_correlation_matrix_outliers_Bsln_bdsz_15K.txt", col.names=T, row.names = F)
+write.table(rESE, "rE_SE_correlation_matrix_outliers_Bsln_bdsz_15K.txt", col.names=T, row.names = F)
+
+```
+
+# Plot grey-matter and residual correlations
+
+```{r, message=FALSE, eval=F}
+
+rB<-read.table("rB_correlation_matrix_outliers_Bsln_bdsz_15K.txt", header = T, colClasses = numeric())
+rBpval<-read.table("rB_pvalues_correlation_matrix_outliers_Bsln_bdsz_15K.txt", header = T, colClasses = numeric())
+rBSE<-read.table("rB_SE_correlation_matrix_outliers_Bsln_bdsz_15K.txt", header = T, colClasses = numeric())
+
+rp=read.table("rE_correlation_matrix_outliers_Bsln_bdsz_15K.txt", header = T, colClasses = numeric())
+rpp=read.table("rE_pvalues_correlation_matrix_outliers_Bsln_bdsz_15K.txt", header = T, colClasses = numeric())
+rpSE=read.table("rE_SE_correlation_matrix_outliers_Bsln_bdsz_15K.txt", header = T, colClasses = numeric())
+
+rp=t(rp)
+rpp=t(rpp)
+rpSE=t(rpSE)
+
+# Combine the two triangular matrics
+allr<-matrix(0, nrow = length(phe$variable_clean), ncol = length(phe$variable_clean) )
+allr[upper.tri(allr)]<-rB[upper.tri(rB)]
+allr[lower.tri(allr)]<-rp[lower.tri(rp)]
+colnames(allr)<-phe$variable_clean
+rownames(allr)<-phe$variable_clean
+
+allp<-matrix(0, nrow = length(phe$variable_clean), ncol = length(phe$variable_clean) )
+allp[upper.tri(allp)]<-rBpval[upper.tri(rBpval)]
+allp[lower.tri(allp)]<-rpp[lower.tri(rpp)]
+allr[which(is.na(allr), arr.ind = T)]<-0
+
+allSE<-matrix(0, nrow = length(phe$variable_clean), ncol = length(phe$variable_clean) )
+allSE[upper.tri(allSE)]<-rBSE[upper.tri(rBSE)]
+allSE[lower.tri(allSE)]<-rpSE[lower.tri(rpSE)]
+allSE[which(is.na(allSE), arr.ind = T)]<-0
+
+# Create object to highlight categories
+ncate=as.data.frame(table(phe$category))
+ncate$Freq
+diag(allr)=NA
+
+# Bonferroni significance threshold
+signifUKB_Biv=0.05/(53*52)
+
+# Make plot with correct colours and stars
+png("Corplot_rE_rB_allstars_ordered_Bsln_bdsz_15K_stars.png", width = 30, height = 30, units = "cm", res = 300)
+corrplot(corr = allr, method = "color",addgrid.col = "grey", type="full",  tl.cex = 1 ,  tl.col = "black", insig = "blank", col=colorRampPalette(c("#0072B2","#56B4E9","white", "#F0E442","#D55E00"))(100), na.label="square", tl.srt=70, cl.cex = 1.3)
+for (iii in 1:length(unique(ncate$Var1))){
+  rect(xleft = 0.5 + sum(ncate$Freq[0:(iii-1)]), ytop = 0.5+sum(ncate$Freq)-sum(ncate$Freq[0:(iii-1)]), ybottom = 0.5+sum(ncate$Freq) - ncate$Freq[iii] -sum(ncate$Freq[0:(iii-1)]), xright = 0.5 + ncate$Freq[iii] +sum(ncate$Freq[0:(iii-1)]), lwd = 3 )
+}
+stars=which(allp<signifUKB_Biv, arr.ind = T)
+for (iii in 1:length(stars[,1])){
+  text( stars[iii,2], dim(allr)[1] +1 - stars[iii,1], labels = "*", cex=1.2)
+}
+dev.off()
+
+
+# write results
+allrp=allr
+for (iii in 1:dim(allr)[1]){
+  for (jjj in 1:dim(allr)[1]){
+allrp[iii,jjj]=paste0( signif(allr[iii,jjj], 3)," (SE=",signif(allSE[iii,jjj], 2) , "; p=", signif(allp[iii,jjj], 2), ")")
+}
+}
+diag(allrp)=NA
+write.csv(allrp, "UKB_Fig3a_rGM_rE_Bsln_bdsz.csv")
+
+```
+
+<br><br>

@@ -1,22 +1,159 @@
 ---
-title: "Index "
-author: "[Baptiste Couvy-Duchesne]"
-date: "`r format(Sys.time(), '%d %B %Y')`"
-output:
-  epuRate::PCTG:
-    toc: TRUE
-    number_sections: FALSE
-    code_folding: "hide"
+title: "A unified framework for association and prediction from vertex-wise grey-matter structure"
+output: html_document
 ---
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# You need these libraries to run this template:
-library(rmarkdown)    # install.packages("rmarkdown") 
-library(epuRate)      # devtools::install_github("holtzy/epuRate", force=TRUE)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
-<br><br><br><br>
+\
+\
+\
+\
+*Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher*
+ 
+The code is presented in a serie of Rmarkdown files with corresponding html knitted files. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.   
+\
 
-Hello, website
+## Dependencies 
 
+**qsubshcom**\
+Sections of the code in **bash** may be run directly on a high performance cluster thanks to the **qsubshcom** piece of software. (<https://github.com/zhilizheng/qsubshcom>)  
+In short, **qsubshcom** is a job submission wrapper that adapts automatically to the cluster system, which makes our code highly portable: you only need to change the paths to working directory or your own files. 
+
+Steps that do not require much time/memory were usually run in an interactive session (they come without the **qsubshcom** syntax) 
+
+**FreeSurfer 6.0**\
+Image processing requires FreeSurfer 6.0 (<https://surfer.nmr.mgh.harvard.edu/>). 
+
+**ENIGMA-shape**\
+Subcortical processing further requires the scripts developped by Boris Gutman for the ENIGMA consortium (<http://enigma.ini.usc.edu/protocols/imaging-protocols/>).
+
+**OSCA**\
+Most of the analyses were performed using the **OSCA** software (<https://cnsgenomics.com/software/osca/#Overview>). 
+
+**GCTA**\
+For bivariate models, the option is yet to be implemented in OSCA so we detail the trick we use to run those models in GCTA (<https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis>).
+
+**R**\
+Plots, some data management and penalised regression were performed using R3.3 to 3.6. See manuscript (or code) for full list of packages used.
+
+## Atlas files
+
+We created a bunch of useful files to facilitate the analysis, for example to prune out vertices outside of the cortex, to relate each vertex to a cortical/subcortical region... They are available in the **atlas** folder of this repository
+ 
+## General organisation of the working directory ${wd}
+
+		/FS	
+Contains all outputs from MRI image processing, in particular:  
+
+		/FS								
+			/batch${batch}				
+				/${ID}
+					/mri
+					/surf
+					/ENIGMA_shape
+					/...
+Output of FreeSurfer (standard) and ENIGMA-shape processing
+		
+		/FS			
+			ENIGMAshapeResults			
+				/batch${batch}
+					/${ID}
+Reorganised copy of the ENIGMA_shape folders, to facilitate data extraction using ENIGMA-shape function
+
+		/FS
+			FSresults
+				/batch${batch}
+					/${ID}					
+Selected output FreeSurfer files (folders *stats* and part of the *surf*) which are necessary for the downstream analyses. Having all useful files in *ENIGMAshapeResults* and *FSresults* allows deleting all other FreeSurfer files to reduce memory and file usage on the cluster. 
+
+		/BodFiles						
+Binary files for OSCA analysis, incl. vertex files and brain relatedness matrices
+
+		/Phenotypes_15K
+			/UKB_phenotypes
+			/UKB_phenotypes_reg_Bsln
+			/UKB_phenotypes_reg_Bsln_bdsz
+Phenotype files to facilitate loops on variables included in the analyses		
+File format (tsv or space delimited): eid eid pheno, no column names  
+The different folders correspond to different covariates that have been regressed out (Bsln=baseline model/covariates, Bsln_bdsz= baseline + body size covariates) 
+
+		/Phenotypes_15K
+			/UKB_phenotypes_bivariate_reg_Bsln
+			/UKB_phenotypes_bivariate_reg_Bsln_bdsz
+Each file contains a pair of phenotypes for bivariate models (eid eid pheno1 pheno2)  			
+			
+		/BREML_all_QC_reg_Bsln
+		/BREML_all_QC_reg_Bsln_bdsz
+Results of morphometricity analyses (*fsaverage no smoothing*) with different sets of covariates
+
+		/BREML_ROI_Bsln
+			/lingual
+			/Hippocampus
+			/...
+		/BREML_ROI_Bsln_bdsz
+			/lingual
+			/Hippocampus
+			/...
+Results of morphometricity analyses by Regions of Interest (ROIs). 		
+		
+		/BREML_bivariate_reg_Bsln_bdsz
+		/BREML_bivariate_reg_Bsln
+Results of grey-matter correlations (bivariate models)  
+
+		/BLUP_Bsln
+		/BLUP_Bsln_bdsz
+Files from BLUP calculation on discovery sample, incl. individual weights, blup weights and BLUP scores from cross-validation design. 
+
+		/LassoRidgePred
+Outputs from Lasso prediction using *R* package *bigstatsr*
+		 
+		/BREML_Bsln_fwhm${fwhm}
+		/BREML_Bsln_${fsav}
+Results of morphometricity analyses varying smoothing of the *fsaverage* cortical meshes (fwhm in 5 10 15 20 25) and the mesh complexity (fsav in fsaverage3 fsaverage4 fsaverage5 fsaverage6)  
+Baseline covariates  		
+		
+		
+		
+		
+## Aliases used in the scripts
+
+${od}		*Output directory* 
+
+${fsdir}	*FreeSurfer directory* 
+
+		/bin
+		/data
+		/subjects
+		/...
+
+${bind}		*Binaries directory*
+
+		/osca
+		/gcta
+		/qsubshcom
+		/ENIGMA_shape
+			/MedialDemonsShared
+			/...
+		
+${medici}	*Storage directory where MRI images are stored/downloaded*
+
+		/T1
+			/raw
+				/batch${batch}
+					/T1_fetch_batch${batch}.lis
+					/...	
+			/unzip
+				/batch${batch}
+		
+		/T2
+			/raw
+				/batch${batch}
+					/T2_fetch_batch${batch}.lis
+					/...
+			/unzip
+				/batch${batch}		
+			
 

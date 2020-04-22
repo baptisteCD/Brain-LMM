@@ -1,0 +1,300 @@
+---
+title: "Run morphometricity analyses"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Create output folders
+
+```{bash, message=FALSE, eval=F}
+
+mkdir -p ${wd}/BREML_all_QC_reg_Bsln
+mkdir -p ${wd}/BREML_all_QC_reg_Bsln_bdsz
+
+```
+
+# Run mixed models using all the files created previously 
+
+> We submit a single array job, which contains 224 individual jobs, which is the number of phenotypes (*-array=1-224*)   
+
+```{bash, message=FALSE, eval=F}
+
+od="working/directory/BREML_all_QC_reg_Bsln"
+cd ${od}
+
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt) |; 
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/allVerticesBRM_QC --pheno "${wd}"/Phenotypes15K/UKB_phenotypes_reg_Bsln/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt)_reg.txt --out "${od}"/FullModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt).outliers.UKB --reml-maxit 10000 " 1 4G FullModel_Bsln 4:00:00 "-array=1-224 -acct=UQ-IMB-CNSG" 
+
+# Now using phenotypes regressed out for baseline and body size variables
+od="working/directory/BREML_all_QC_reg_Bsln_bdsz"
+cd ${od}
+ 
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt) |; 
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/allVerticesBRM_QC --pheno "${wd}"/../Phenotypes15K/UKB_phenotypes_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt)_reg.txt --out "${od}"/FullModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt).outliers.UKB --reml-maxit 10000 " 1 4G FullModel_Bsln_bdsz 4:00:00 "-array=1-224 -acct=UQ-IMB-CNSG" 
+
+```
+
+# Read results and put data together
+
+## Baselie covariates results
+
+```{R, message=FALSE, eval=FALSE}
+
+phe=read.csv("UKB_allvars_categories_fancylabels_Jan19Update.csv")
+colnames(phe)=c("category", "fancyLabel", "var")
+sample="UKB"
+
+allPheno<-matrix(NA, nrow = length(phe$var), ncol=4)
+rownames(allPheno)<-phe$var
+colnames(allPheno)<-c("variance","SE", "Pval",  "n")
+
+  for (phenotype in phe$var){
+  
+ if (file.exists(paste0("BREML_all_QC_reg_Bsln/FullModel.", phenotype, ".outliers.", sample, ".hsq"))){
+T1<-read.table(paste0("BREML_all_QC_reg_Bsln/FullModel.", phenotype, ".outliers.", sample, ".hsq"), fill=T,  stringsAsFactors = F, header=T)
+datPlot3<-c(as.numeric(T1[4,2]),as.numeric(T1[4,3]), as.numeric(T1[9,2]), as.numeric(T1[10,2]) )
+datPlot3[1]<-datPlot3[1]*100
+allPheno[phenotype,]<-datPlot3
+} 
+}
+allPheno<-as.data.frame(allPheno)
+
+#rownames(allPheno)
+allPheno$category<-phe$category
+allPheno$variable<-rownames(allPheno)
+allPheno$lb<-allPheno$variance-1.96*allPheno$SE*100
+allPheno$ub<-allPheno$variance+1.96*allPheno$SE*100
+allPheno$variable_clean=phe$fancyLabel
+
+write.table(allPheno, paste0("BREML_UKB_T1T2_QC_reg_Bsln.txt"), sep="\t", col.names=T, row.names = F)
+
+```
+
+## Baseline+body size corrected results
+
+```{R, message=FALSE, eval=FALSE}
+
+phe=read.csv("UKB_allvars_categories_fancylabels_Jan19Update.csv")
+colnames(phe)=c("category", "fancyLabel", "var")
+sample="UKB"
+
+allPheno<-matrix(NA, nrow = length(phe$var), ncol=4)
+rownames(allPheno)<-phe$var
+colnames(allPheno)<-c("variance","SE", "Pval",  "n")
+
+  for (phenotype in phe$var){
+  
+ if (file.exists(paste0("BREML_all_QC_reg_Bsln_bdsz/FullModel.", phenotype, ".outliers.", sample, ".hsq"))){
+T1<-read.table(paste0("BREML_all_QC_reg_Bsln_bdsz/FullModel.", phenotype, ".outliers.", sample, ".hsq"), fill=T,  stringsAsFactors = F, header=T)
+datPlot3<-c(as.numeric(T1[4,2]),as.numeric(T1[4,3]), as.numeric(T1[9,2]), as.numeric(T1[10,2]) )
+datPlot3[1]<-datPlot3[1]*100
+allPheno[phenotype,]<-datPlot3
+} 
+}
+allPheno<-as.data.frame(allPheno)
+
+#rownames(allPheno)
+allPheno$category<-phe$category
+allPheno$variable<-rownames(allPheno)
+allPheno$lb<-allPheno$variance-1.96*allPheno$SE*100
+allPheno$ub<-allPheno$variance+1.96*allPheno$SE*100
+allPheno$variable_clean=phe$fancyLabel
+
+write.table(allPheno, paste0("BREML_UKB_T1T2_QC_reg_Bsln_bdsz.txt"), sep="\t", col.names=T, row.names = F)
+
+```
+
+# Circular barplots 
+
+Here, we show how to make the plot in the case of baseline covariates  
+For body-size corrected analyses the code needs to be slighty adapted to include the R2 corresponding to body size (fixed effect), which requires an additional colour and variable *value6* in the dat table  
+
+```{R, message=FALSE, eval=FALSE}
+
+library(tidyverse)
+library(grid)
+library(RColorBrewer)
+library(scales)
+library(dplyr)
+
+signifT=0.05/168 # Bonferroni significant threshold
+
+# Open fixed effects and morphometricity estimates
+fixEff=read.csv("FixedEffects_UKB_15K_Jan2019Update.csv", stringsAsFactors = F)
+reml=read.table(paste0("BREML_UKB_T1T2_QC_reg_Bsln.txt"), header=T , stringsAsFactors = F)
+
+# Create tables for plotting
+dat=reml[,c("variable","variance" , "SE"  ,  "n" , "lb" , "ub" ,"variable_clean","category" ,"Pval", "n" )]
+dat=merge(dat, fixEff[,c("Variable",  "r0" , "rage", "rsex" , "rbrain"  )], by.x="variable", by.y="Variable")
+
+# Total R2 with covariates
+dat$r2=rowSums(dat[,c("r0" , "rage", "rsex" , "rbrain" )])
+
+# We scale the morphometricity estimates to account for the fact that the covariates were regressed out first, meaning we estimated the morphometricity on a fraction of the trait variance
+dat$value1=dat$variance*(1-dat$r2)
+dat$value2=dat$rbrain*100
+dat$value3=dat$rsex*100
+dat$value4=dat$rage*100
+dat$value5=dat$r0*100
+dat$lb=dat$lb*(1-dat$r2)
+dat$ub=dat$ub*(1-dat$r2)
+
+dat=dat[,c("variable","category" ,"variable_clean", "value1","value2", "value3", "value4","value5", "Pval", "lb", "ub", "n", "r2", "SE")]
+dat=dat[order(dat$category, decreasing = T),]
+
+# Write full table
+write.table(dat, paste0("T1T2_SignifResults_BREML_Bsln.txt"), sep="\t", col.names = T, row.names = F)
+
+# Keep significant results only for plotting
+dat=dat[which(dat$Pval<signifT),]
+
+# Off set CIs so they centre around the morphometricity estimates in plot
+dat$lb=dat$lb+dat$r2*100
+dat$ub=dat$ub+dat$r2*100
+
+# Define some variables as factors (required for plotting)
+dat$variable=as.factor(dat$variable)
+dat$category=as.factor(dat$category)
+dat$variable_clean=as.factor(dat$variable_clean)
+
+# Get rid of variables with too few observations (<500)
+dat[which(reml$n<500),]
+length(which(dat$Pval< signifT))
+
+# ----------------------------------------------
+# REARRANGE DATA
+# ----------------------------------------------
+
+don=dat %>%
+  # Reformat the data using tidyr, from wide (untidy) to long (tidy) format. Instead of having 4 columns for thickness, curvature..., we will have only one.
+  gather(key="phenotype", value="value", value1:value5) %>%
+    mutate(phenotype=as.factor(phenotype)) %>%
+
+  # Calculate the total for each variable. This will be useful to place the label of each group
+  group_by(variable_clean) %>%
+  mutate(my_sum=sum(value)) %>%
+  ungroup() %>%
+
+  # We need to reorder each variable into each category: the graph is easier to read if groups are ordered
+  arrange(category, my_sum) %>%
+  mutate(variable_clean = factor(variable_clean, unique(variable_clean))) %>%
+
+  # And add space between each category (to make a break between groups).
+  mutate(position= as.numeric(variable_clean) + match(category, levels(category)) +2)
+
+# ----------------------------------------------
+# MAKE A DATA FRAME FOR THE LABELS
+# ----------------------------------------------
+
+# Calculate the position of labels(x and y)
+label_data=don %>%
+  group_by(variable_clean) %>%
+  summarise(position=unique(position), ypos=max(ub) + 5 )
+
+# calculate the ANGLE of the labels
+my_num=max(don$position) + 2
+angle= 90 - 360 * label_data$position/my_num + 5
+
+# calculate the alignment of labels: right or left
+# If I am on the left part of the plot, my labels have currently an angle < -90
+label_data$hjust<-ifelse( angle < -90, 1, 0)
+
+# flip angle BY to make them readable
+#label_data$angle<-ifelse(my_angle > 90 & my_angle < -90, my_angle-180, my_angle)
+label_data$angle<-ifelse(angle < -90, angle+180, angle)
+
+# add color depending on significance
+don$Pval[which(is.na(don$Pval))]<-1
+label_data$col<-ifelse(don$Pval[!duplicated(don$variable_clean)]<signifT, "black", "grey")
+
+# add 95%CI
+label_data=merge(label_data, dat[,c("variable_clean", "lb", "ub")], by="variable_clean")
+
+# ----------------------------------------------
+# SET colours
+# ----------------------------------------------
+back_color="white"
+allCols<-c("#56B4E9","#E69F00",  "#009E73",  "#0072B2","#F0E442")
+
+# ----------------------------------------------
+# MAKE A DATA FRAME FOR THE CATEGORY
+# ----------------------------------------------
+
+# Calculate the position of the base lines and catefory names?
+base_data=don %>%
+  group_by(category) %>%
+  summarize(start=min(position), end=max(position) ) %>%
+  rowwise() %>%
+  mutate(title=mean(c(start, end)))
+
+# ----------------------------------------------
+# MAKE THE PLOT
+# ----------------------------------------------
+
+# And now make the plot
+p=don %>%  ggplot( aes(x=position, y=value, fill=phenotype, group=phenotype)) +
+
+  # Add a val=100/75/50/25 lines. I do it at the beginning to make sur barplots are OVER it.
+  geom_segment(data=base_data, aes(x = start, y = 100, xend = end, yend = 100), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
+  geom_segment(data=base_data, aes(x = start, y = 80, xend = end, yend = 80), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=base_data, aes(x = start, y = 60, xend = end, yend = 60), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=base_data, aes(x = start, y = 40, xend = end, yend = 40), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=base_data, aes(x = start, y = 20, xend = end, yend = 20), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+
+  # Add text showing the value of each 100/75/50/25 lines
+  annotate("text", x = rep(1,5), y = c(20, 40, 60, 80, 100), label = c("20%", "40%", "60%", "80%", "100%") , color="grey", size=seq(2.8,4.5,length.out = 5) , angle=0, fontface="bold") +
+
+  # Add a title to these numbers
+  annotate("text", x = 1, y = 180, label = "Associations \n R-squared " , color="grey", size=4.5 , angle=0, fontface="bold", vjust=0.5) +
+
+  # Add a legend
+annotate("text", x = (max(don$position)+2)/2+1, y = 184, label = "Age" , color=allCols[2], size=4 , angle=0, fontface="bold", vjust=0.5, hjust=6.5) +
+annotate("text", x = (max(don$position)+2)/2+1, y = 184, label = "Head size" , color=allCols[4], size=4 , angle=0, fontface="bold", vjust=0.5, hjust=1)+
+annotate("text", x = (max(don$position)+2)/2+1, y = 184, label = "Sex" , color=allCols[3], size=4 , angle=0, fontface="bold", vjust=0.5, hjust=4.5) +
+annotate("text", x = (max(don$position)+2)/2+1, y = 184, label = "Other" , color=allCols[1], size=4 , angle=0, fontface="bold", vjust=0.5, hjust=6.5) +
+#annotate("text", x = (max(don$position)+2)/2+1, y = 184, label = "Body size" , color=allCols[5], size=4 , angle=0, fontface="bold", vjust=0.5, hjust=-0.5) +
+annotate("text", x = (max(don$position)+2)/2+1, y = 184, label = "Grey-matter shape" , color=allCols[5], size=4 , angle=0, fontface="bold", vjust=0.5, hjust=-1) +
+  
+  # Add bars
+  geom_bar(stat="identity") +
+
+  # Limits of the plot = very important
+  ylim(-100,max(label_data$ypos, na.rm=T)+80) +
+  xlim(1,max(don$position)+3) +
+
+  # Add labels of each bar. The angle is calculated before.
+  geom_text(data=label_data, aes(x=position, y=ypos, label=variable_clean, hjust=hjust), color=label_data$col, alpha=1, size=3, angle= label_data$angle, inherit.aes = FALSE ) +
+
+  # General theme
+  theme_minimal() +
+  labs(fill="") +
+  theme(
+    legend.position="none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.background = element_rect(fill = back_color),
+    panel.background = element_rect(fill = back_color, colour=back_color),
+    plot.margin = unit(rep(0,4), "cm")    ) +
+
+  # Color palette ?
+  scale_fill_manual(values=allCols[5:1])+
+  # make it circular!
+  coord_polar() +
+  # Add segments (base line)
+  geom_segment(data=base_data, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, size=1 , inherit.aes = FALSE ) +
+  # Add text for groups. Y control the space between baseline and text
+  geom_text(data=base_data, aes(x = title, y = -18, label=category), hjust=c(rep(0.8,length(unique(base_data$category))%/%2 ),rep(0.2,length(unique(base_data$category)) - length(unique(base_data$category))%/%2)), colour = "black", alpha=0.8, size=2, fontface="bold", inherit.aes = FALSE) +
+   # Add95%CI
+  geom_errorbar(data=label_data, aes(x=position, ymin=lb, ymax=ub),colour =label_data$col, inherit.aes = FALSE)
+
+p
+ggsave(p, filename = paste0("UKB_allVars_T1T2_QC_Bsln_signif.png"), device = "png",width=200, height=200, units = "mm")  
+
+```
+
+
+<br><br>

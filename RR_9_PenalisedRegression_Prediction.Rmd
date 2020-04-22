@@ -1,0 +1,196 @@
+---
+title: "Penalised regression in R to compare with BLUP scores"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Convert full bod file into text
+
+Here, the bod file contains vertex-wise values for the discovery and replication sample  
+
+```{bash, message=FALSE, eval=F}
+
+${bind}/qsubshcom " "${bind}"/osca --befile "${wd}"/BodFiles/AllVertices.fwhm0.fsaverage.UKB15K --make-efile --out "${wd}"/BodFiles/AllVertices.fwhm0.fsaverage.UKB15K.txt " 1 80G MakeEfile 4:00:00 "-acct=UQ-IMB-CNSG"
+ 
+mkdir -p /gpfs1/scratch/30days/uqbcouvy/UKB_MRI/UKB_15K/LassoRidgePred
+
+```
+
+# Run lasso and ridge (when available) using different R packages
+
+We have made several scripts (*RR_9.0*) that use the different R packages that have implemented penalised regression  
+**Note that with the size of the current data, only the *bigstatsr* package managed to perform the analyses**  
+
+All R scripts require the following arguments:   
+*/working/directory/* # setwd() in R  
+*VertexFile.txt* # created above    
+*outputFolder*  
+*variable name*  
+*lasso or ridge*  
+*n cpus to use*  
+
+They require two lists of IDs in order to separate discovery and replication (train / test samples)  
+*$wd/BodFiles/ID_discovery_UKBanalysis.txt*   
+*$wd/BodFiles/ID_replication_UKBanalysis.txt*   
+
+# Using bigstatsr package (as in manuscript)
+
+To our knowledge, this package only allows for lasso regression  
+
+```{bash, message=FALSE, eval=F}
+
+cd $wd/LassoRidgePred
+
+for mod in lasso
+do 
+${bind}/qsubshcom " Rscript --no-save 'RR_9.0_PenalisedRegressionFunction_bigstatsr_noBin.R' /working/directory AllVertices.fwhm0.fsaverage.UKB15K.txt LassoRidgePred \$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne.txt) "${mod}" 1" 1 300G R_pen_bigstatsr_noBin_${mod} 48:00:00 "-array=1-58 -acct=UQ-IMB-CNSG"
+done
+ 
+```
+
+# Using glmnet and biglasso packages 
+
+For us, it only worked on a subset of the data but could not scale to the full sample  
+
+```{bash, message=FALSE, eval=F}
+
+cd $wd/LassoRidgePred
+
+for mod in lasso ridge
+do 
+${bind}/qsubshcom " Rscript --no-save 'RR_9.0_PenalisedRegressionFunction_glmnet.R' /working/directory AllVertices.fwhm0.fsaverage.UKB15K.txt LassoRidgePred \$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne.txt) "${mod}" 1" 1 250G R_penalised_glmnet_${mod} 48:00:00 "-array=1-2 -acct=UQ-IMB-CNSG"
+done
+
+# On full sample 
+# Error in elnet(x, is.sparse, ix, jx, y, weights, offset, type.gaussian,  : 
+#  long vectors (argument 5) are not supported in .Fortran
+#Calls: cv.glmnet -> cv.glmnet.raw -> glmnet -> elnet
+#Execution halted
+
+# Similarily using biglasso, we got the error:
+
+#Error in SetMatrixElements(x@address, as.double(j), as.double(i), as.double(value)) : 
+ # long vectors not supported yet: ../../src/include/Rinlinedfuns.h:522
+#Calls: as.big.matrix ... [<- -> .local -> SetElements.bm -> SetMatrixElements
+#Execution halted
+
+```
+
+# Evaluate prediction
+
+## Open phenotype files
+
+```{R, message=FALSE, eval=F}
+
+# Open 15K - january2019 data
+TT=read.csv("UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv")
+# Using read_csv makes a df and does not allow to call TT[,columnName]
+
+# Phenotype list
+phe=read.csv("UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv", stringsAsFactors = F)
+
+# Subset 
+signi=read.table("UKB_Phenotypes_signif_replication15K.txt")
+phe=phe[which(phe$V4 %in% signi$V1),]
+
+```
+
+# Read Lasso predictions
+
+```{R, message=FALSE, eval=F}
+
+BRSdat=as.data.frame(TT$eid)
+colnames(BRSdat)="eid"
+
+for (iii in 1:length(phe$V4)){
+
+  varLoop=phe$V4[iii]
+  BRSvarLoop=paste0("BRS_lasso_", phe$V4[iii])
+  
+  if (file.exists(paste0("LassoRidgePred/lassoPredictor_", varLoop , "_bigstatsr.txt") )){
+  dat=read.table( paste0("LassoRidgePred/lassoPredictor_", varLoop , "_bigstatsr.txt") , header=T)
+  dat$FID=NULL
+    dat$PHENO=NULL
+     dat$CNT=NULL
+  colnames(dat)=c("eid", BRSvarLoop)
+  BRSdat=merge(BRSdat, dat, by="eid", all.x=T)
+  print(dim(BRSdat))
+  }
+}
+
+BRSdat=BRSdat[-which(is.na(BRSdat$BRS_lasso_Age_MRI)),]
+
+# Add scores to the table
+TT2=merge(TT, BRSdat, by="eid")
+
+# Check
+aa=cbind(colSums(is.na(TT2[,c(paste0("BRS_lasso_", phe$V4))])),colSums(is.na(TT2[,c(paste0( phe$V4))])) )
+
+```
+
+# Evaluate prediction performance in replication set
+
+```{R, message=FALSE, eval=F}
+library(lmtest)
+library(pROC)
+res=NULL
+
+# Loop on subset of phenotypes for which BRS was calculated 
+for (varLoop in phe$V4){
+
+BRSvarLoop=paste0("BRS_lasso_", varLoop) # Name of the BLUP score
+newVarLoop=varLoop # Phenotype to predict in independent sample
+    
+  # Fixed effect R2
+m1<-lm(formula = as.formula(paste0(newVarLoop," ~  Age_MRI +  sexuses_datacoding_9_f31_0_0 + ICV + LThickness + RThickness + LSurfArea + RSurfArea "))  , data = TT2[which(!is.na(TT2[,BRSvarLoop])),])
+ 
+m2<-lm(formula = as.formula(paste0(newVarLoop," ~ ", BRSvarLoop, "+ Age_MRI +  sexuses_datacoding_9_f31_0_0 + ICV + LThickness + RThickness + LSurfArea + RSurfArea "))  , data = TT2)
+ 
+mICV<-as.data.frame(summary(m2)$coefficients)
+# Add values of interest
+mICV$R2<-NA
+mICV[BRSvarLoop, "R2_cov"]<-summary(m1)$adj.r.squared
+mICV[BRSvarLoop, "R2"]<-summary(m2)$adj.r.squared
+lmt=lrtest(m1,m2)
+mICV[BRSvarLoop, "pval"]<-lmt$`Pr(>Chisq)`[2]
+mICV[BRSvarLoop, "chisQ"]<-lmt$Chisq[2]
+mICV[BRSvarLoop, "df"]<-lmt$Df[2]
+mICV[BRSvarLoop, "R2_final"]<-mICV[BRSvarLoop, "R2"]-mICV[BRSvarLoop, "R2_cov"]
+
+# Get AUC for discrete variables
+if (length(table(TT2[,newVarLoop]))<3){
+mICV[BRSvarLoop, "auc"]<-auc(TT2[,newVarLoop], TT2[,BRSvarLoop])
+mICV[BRSvarLoop, "auc.se"]<-sqrt(var(roc(TT2[,newVarLoop]~ TT2[,BRSvarLoop])))
+} else{
+mICV[BRSvarLoop, "auc"]<-NA
+mICV[BRSvarLoop, "auc.se"]<-NA
+}
+
+res<-rbind(res,cbind(BRSvarLoop,  newVarLoop, mICV[BRSvarLoop,]) )
+
+}
+
+# Write results
+write.csv(res, "Lasso_prediction_UKB_replicationsample5K.csv")
+
+
+```
+
+# Final plots - BLUP vs. LASSO
+
+```{r, message=FALSE, eval=F}
+
+blup=read.csv("BLUP_prediction_UKBreplication_Bslne.csv")
+lasso=read.csv("Lasso_prediction_UKB_replicationsample5K.csv")
+
+all=merge(blup, lasso, by.x="HCPvarLoop", by.y="newVarLoop")
+
+plot(all$R2_final.x, all$R2_final.y)
+abline(a=0, b=1, col="red")
+
+```
+
+<br><br>

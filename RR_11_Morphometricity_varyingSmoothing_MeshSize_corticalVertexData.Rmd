@@ -1,0 +1,304 @@
+---
+title: "Run morphometricity analysis with different processing options (cortical smoothing and meshes)"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Run morphometricity analysis
+
+## Varying smoothing
+
+```{bash, message=FALSE, eval=F}
+
+# Setup environment
+for fwhm in 5 10 15 20 25
+do
+mkdir -p $wd/BREML_Bsln_fwhm${fwhm}
+done
+
+# Submit jobs
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt) |; 
+for fwhm in 5 10 15 20 25 |;
+do |;
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/allVerticesBRM.fwhm\${fwhm}.QC --pheno "${wd}"/Phenotypes15K/UKB_phenotypes_reg_Bsln/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt)_reg.txt --out "${wd}"/BREML_Bsln_fwhm\${fwhm}/FullModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt).outliers.UKB --reml-maxit 10000 --thread-num 2 |;
+done " 2 4G BREML_fwhm_Bsln 48:00:00 "-array=1-224 -acct=UQ-IMB-CNSG" 
+
+```
+
+## Different cortical meshes
+
+```{bash, message=FALSE, eval=F}
+
+# Set working environment
+for fsav in fsaverage3 fsaverage4 fsaverage5 fsaverage6
+do
+mkdir -p ${wd}/BREML_Bsln_${fsav}
+done
+
+# Submit jobs
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt) |; 
+for fsav in fsaverage3 fsaverage4 fsaverage5 fsaverage6 |;
+do |;
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/allVerticesBRM.\${fsav}.QC --pheno "${wd}"/Phenotypes15K_Jan2019Update/UKB_phenotypes_reg_Bsln/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt)_reg.txt --out "${wd}"/BREML_Bsln_\${fsav}/FullModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt).outliers.UKB --reml-maxit 10000 --thread-num 5 |; 
+done " 5 4G FullModel_${fsav}_Bsln 48:00:00 "-array=1-224 -acct=UQ-IMB-CNSG" 
+
+```
+
+# Make tables and plots
+
+## Vary smoothing
+
+```{R, message=FALSE, eval=FALSE}
+
+phe=read.csv("UKB_allvars_categories_fancylabels_Jan19Update.csv")
+colnames(phe)=c("category", "fancyLabel", "var")
+sample="UKB"
+
+for (fwhm in c(5, 10 ,15,20,25)){
+
+allPheno<-matrix(NA, nrow = length(phe$var), ncol=4)
+rownames(allPheno)<-phe$var
+colnames(allPheno)<-c("variance","SE", "Pval",  "n")
+
+for (phenotype in phe$var){
+ if (file.exists(paste0("BREML_Bsln_fwhm",fwhm, "/FullModel.", phenotype, ".outliers.", sample, ".hsq"))){
+T1<-read.table(paste0("BREML_Bsln_fwhm",fwhm, "/FullModel.", phenotype, ".outliers.", sample, ".hsq"), fill=T,  stringsAsFactors = F, header=T)
+datPlot3<-c(as.numeric(T1[4,2]),as.numeric(T1[4,3]), as.numeric(T1[9,2]), as.numeric(T1[10,2]) )
+datPlot3[1]<-datPlot3[1]*100
+allPheno[phenotype,]<-datPlot3
+} }
+
+allPheno<-as.data.frame(allPheno)
+allPheno$category<-phe$category
+allPheno$variable<-rownames(allPheno)
+allPheno$lb<-allPheno$variance-1.96*allPheno$SE*100
+allPheno$ub<-allPheno$variance+1.96*allPheno$SE*100
+allPheno$variable_clean=phe$fancyLabel
+
+write.table(allPheno, paste0("BREML_UKB_T1T2_QC_reg_Bsln_fwhm", fwhm, ".txt"), sep="\t", col.names=T, row.names = F)
+}
+
+```
+
+## Vary cortical meshes
+
+```{R, message=FALSE, eval=FALSE}
+
+phe=read.csv("UKB_allvars_categories_fancylabels_Jan19Update.csv")
+colnames(phe)=c("category", "fancyLabel", "var")
+sample="UKB"
+
+for (fsav in c("fsaverage3", "fsaverage4", "fsaverage5", "fsaverage6")){
+
+allPheno<-matrix(NA, nrow = length(phe$var), ncol=4)
+rownames(allPheno)<-phe$var
+colnames(allPheno)<-c("variance","SE", "Pval",  "n")
+
+for (phenotype in phe$var){
+ if (file.exists(paste0("BREML_Bsln_",fsav, "/FullModel.", phenotype, ".outliers.", sample, ".hsq"))){
+T1<-read.table(paste0("BREML_Bsln_",fsav, "/FullModel.", phenotype, ".outliers.", sample, ".hsq"), fill=T,  stringsAsFactors = F, header=T)
+datPlot3<-c(as.numeric(T1[4,2]),as.numeric(T1[4,3]), as.numeric(T1[9,2]), as.numeric(T1[10,2]) )
+datPlot3[1]<-datPlot3[1]*100
+allPheno[phenotype,]<-datPlot3
+} }
+
+allPheno<-as.data.frame(allPheno)
+allPheno$category<-phe$category
+allPheno$variable<-rownames(allPheno)
+allPheno$lb<-allPheno$variance-1.96*allPheno$SE*100
+allPheno$ub<-allPheno$variance+1.96*allPheno$SE*100
+allPheno$variable_clean=phe$fancyLabel
+
+write.table(allPheno, paste0("BREML_UKB_T1T2_QC_reg_Bsln_", fsav, ".txt"), sep="\t", col.names=T, row.names = F)
+}
+
+```
+
+# Compare results with fsaverage no smoothing
+
+## Varying smoothing
+
+### Integrate fixed effect R2   
+
+```{R, message=FALSE, eval=FALSE}
+
+phe=read.csv("UKB_allvars_categories_fancylabels_Jan19Update.csv", stringsAsFactors = F)
+colnames(phe)=c("category", "fancyLabel", "var")
+sample="UKB"
+
+# Open all reml results and merge
+all=matrix(data = phe$var, nrow = 224, ncol = 1)
+colnames(all)="variable"
+
+for (fwhm in c(5, 10, 15, 20 ,25)){
+reml=read.table(paste0("BREML_UKB_T1T2_QC_reg_Bsln_fwhm", fwhm,".txt"), header=T , stringsAsFactors = F)
+reml=reml[,c("variance", "SE", "Pval", "n", "variable")]
+colnames(reml)=c(paste0(colnames(reml)[1:4], "_fwhm", fwhm) , "variable")
+all=merge(all, reml, by="variable")
+}
+
+# Add fsaverage fwhm0 results 
+reml=read.table("BREML_UKB_T1T2_QC_reg_Bsln.txt", header=T , stringsAsFactors = F)
+reml=reml[,c("variance", "SE", "Pval", "n", "variable", "variable_clean", "lb", "ub", "category")]
+all=merge(all, reml, by="variable")
+length(which(reml$Pval<(0.05/169)))
+
+# Fixeff and REML
+fixEff=read.csv("FixedEffects_UKB_15K_Jan2019Update.csv", stringsAsFactors = F)
+fixEff$r2=rowSums(fixEff[,c("r0" , "rage", "rsex" , "rbrain" )])
+all=merge(all, fixEff[,c("r2", "Variable")], by.x="variable", by.y="Variable")
+
+all$variance=all$variance*(1-all$r2)
+all$variance_fwhm5=all$variance_fwhm5*(1-all$r2)
+all$variance_fwhm10=all$variance_fwhm10*(1-all$r2)
+all$variance_fwhm15=all$variance_fwhm15*(1-all$r2)
+all$variance_fwhm20=all$variance_fwhm20*(1-all$r2)
+all$variance_fwhm25=all$variance_fwhm25*(1-all$r2)
+all$lb=all$lb*(1-all$r2)
+all$ub=all$ub*(1-all$r2)
+
+write.table(all, "REML_UKB_comparison_fwhm.txt", col.names=T, row.names=F)
+```
+
+### Make plot
+
+```{R, message=FALSE, eval=FALSE}
+library(scales)
+library(pBrackets)
+
+all=read.table("REML_UKB_comparison_fwhm.txt", header=T, stringsAsFactors = F)
+
+# Get rid of variables with too few observations (unstable estimates)
+all=all[-which(all$n<500),]
+
+# Order results for plotting
+all=all[order(all$variance),]
+all=all[order(all$category),]
+all$order=1:length(all$variable)
+all=all[-which(all$category=="Prescription drug"),]
+all=all[-which(all$category=="Brain \n measurement"),]
+all$order=1:length(all$variable)
+
+# Set colours
+cols=dichromat_pal(name = "LightBluetoDarkBlue.7")(7)
+show_col(cols)
+
+png("EffectOfSmoothing_Freesurfer_fwhm_REML_vertical_bycategory.png", width = 20, height = 35, units = "cm", res = 400)
+par(mar=c(4,6,2,1))
+plot( all$variance, all$order, pch=20, ylab="",xlab = "Association R2", xlim=c(-5, 120),yaxt = "n", bty="n", cex.lab=1.2)
+points( all$variance_fwhm25,all$order, pch=20, col=cols[2])
+points( all$variance_fwhm20,all$order, pch=20, col=cols[3])
+points( all$variance_fwhm15,all$order, pch=20, col=cols[5])
+points( all$variance_fwhm10,all$order, pch=20, col=cols[6])
+points( all$variance_fwhm5,all$order, pch=20, col=cols[7])
+abline(v=0, lty=2)
+arrows(x0 = all$lb, y0 = all$order, x1 =all$variance, y1 =all$order, length=0.05, angle=90, code= c(1))
+text(y = all$order, x = all$variance +5, labels = all$variable_clean, cex = 1, srt=0,adj = 0)
+legend(95,50, legend = c("no Smoothing","FWHM 5", "FWHM 10", "FWHM 15", "FWHM 20", "FWHM 25"), col = c("black",cols[c(7,6,5,3,2)]), pch=20, cex=1 )
+
+nbCat=1
+ystart=0.5
+xoffset= -5
+for (iii in unique(all$category)){
+  nbVars=length(which(all$category==iii))
+brackets(xoffset ,ystart, xoffset, ystart+nbVars-0.5,h = 1,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+text(x = xoffset, -2, y = ystart+nbVars/2, labels = iii, col="grey",xpd = T, pos = 2, cex=1)
+ystart=ystart+nbVars
+nbCat=nbCat+1
+}
+
+dev.off()
+
+```
+
+## Mesh coarseness
+
+```{R, message=FALSE, eval=FALSE}
+
+# Open all reml results and merge
+all=matrix(data = phe$var, nrow = 224, ncol = 1)
+colnames(all)="variable"
+
+for (fsav in c("fsaverage3", "fsaverage4", "fsaverage5", "fsaverage6")){
+reml=read.table(paste0("BREML_UKB_T1T2_QC_reg_Bsln_", fsav,".txt"), header=T , stringsAsFactors = F)
+reml=reml[,c("variance", "SE", "Pval", "n", "variable")]
+colnames(reml)=c(paste0(colnames(reml)[1:4], "_", fsav) , "variable")
+all=merge(all, reml, by="variable")
+}
+
+# Add replication results
+reml=read.table("BREML_UKB_T1T2_QC_reg_Bsln.txt", header=T , stringsAsFactors = F)
+reml=reml[,c("variance", "SE", "Pval", "n", "variable", "variable_clean", "lb", "ub", "category")]
+all=merge(all, reml, by="variable")
+
+
+# Fixeff and REML
+fixEff=read.csv("FixedEffects_UKB_15K_Jan2019Update.csv", stringsAsFactors = F)
+fixEff$r2=rowSums(fixEff[,c("r0" , "rage", "rsex" , "rbrain" )])
+all=merge(all, fixEff[,c("r2", "Variable")], by.x="variable", by.y="Variable")
+
+all$variance=all$variance*(1-all$r2)
+all$variance_fsaverage3=all$variance_fsaverage3*(1-all$r2)
+all$variance_fsaverage4=all$variance_fsaverage4*(1-all$r2)
+all$variance_fsaverage5=all$variance_fsaverage5*(1-all$r2)
+all$variance_fsaverage6=all$variance_fsaverage6*(1-all$r2)
+all$lb=all$lb*(1-all$r2)
+all$ub=all$ub*(1-all$r2)
+
+write.table(all, "REML_UKB_comparison_fsvarage.txt", col.names=T, row.names=F)
+```
+
+### Make plot
+
+```{R, message=FALSE, eval=FALSE}
+
+library(scales)
+library(pBrackets)
+
+all=read.table("REML_UKB_comparison_fwhm.txt", header=T, stringsAsFactors = F)
+
+all=all[-which(all$n<500),]
+
+# Order for plotting
+all=all[order(all$variance),]
+all=all[order(all$category),]
+all=all[-which(all$category=="Prescription drug"),]
+all=all[-which(all$category=="Brain \n measurement"),]
+all$order=1:length(all$variable)
+all$order=1:length(all$variable)
+
+# Set colours
+cols=dichromat_pal(name = "DarkRedtoBlue.18")(18)
+show_col(cols)
+
+png("EffectOfSmoothing_Freesurfer_fsaverage_REML_vertical_bycategory.png", width = 20, height = 35, units = "cm", res = 400)
+par(mar=c(4,6,2,1))
+plot( all$variance, all$order, pch=20, ylab="",xlab = "Association R2", xlim=c(-5, 120),yaxt = "n", bty="n", cex.lab=1.2)
+points( all$variance_fsaverage3,all$order, pch=20, col=cols[14])
+points( all$variance_fsaverage4,all$order, pch=20, col=cols[15])
+points( all$variance_fsaverage5,all$order, pch=20, col=cols[16])
+points( all$variance_fsaverage6,all$order, pch=20, col=cols[18])
+abline(v=0, lty=2)
+arrows(x0 = all$lb, y0 = all$order, x1 =all$variance, y1 =all$order, length=0.05, angle=90, code= c(1))
+text(y = all$order, x = all$variance +5, labels = all$variable_clean, cex = 1, srt=0,adj = 0)
+legend(95,50, legend = c("fsaverage","fsaverage6", "fsaverage5", "fsaverage4", "fsaverage3"), col = c("black",cols[c(18,16,15,14)]), pch=20, cex=1 )
+
+nbCat=1
+ystart=0.5
+xoffset= -5
+for (iii in unique(all$category)){
+  nbVars=length(which(all$category==iii))
+brackets(xoffset ,ystart, xoffset, ystart+nbVars-0.5,h = 1,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
+text(x = xoffset, -2, y = ystart+nbVars/2, labels = iii, col="grey",xpd = T, pos = 2, cex=1)
+ystart=ystart+nbVars
+nbCat=nbCat+1
+}
+
+dev.off()
+
+```
+
+<br><br>

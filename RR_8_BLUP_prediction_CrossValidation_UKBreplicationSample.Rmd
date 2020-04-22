@@ -1,0 +1,192 @@
+---
+title: "Building and evaluating BLUP scores"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Estimate BLUP scores using cross-validation in the discovery sample 
+
+We have created 10 lists of IDs (*eid eid*) named **UKB_ID_crossValidation_XX.txt** that we use for the cross validation  
+Note that each list of IDs contain 9/10 of the sample (not the other way around), though OSCA could also accomodate it  
+
+## Estimate BLUP random effect values for individuals
+
+```{bash, message=FALSE, eval=F}
+
+od=${wd}/BLUP_Bslne_bdsz # Where all blup outputs and intermediary files will be stored (as well as job log files)
+cd ${od}
+
+for batch in {1..10}
+do
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt) |; if [ ! -f ${od}/\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt).indi.blp ]; then |; ${bind}/osca --reml --orm ${wd}/allVerticesBRM_QC --pheno ${wd}/Phenotypes_15K/UKB_phenotypes_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt)_reg.txt --keep ${wd}/UKB_ID_crossValidation_${batch}.txt --reml-pred-rand --out ${od}/\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt).${batch} --reml-maxit 10000 |; fi " 1 4G BLUP_CV_indi_${batch} 48:00:00 "-array=1-58 -acct=UQ-IMB-CNSG" 
+done
+
+```
+
+## Estimate BLUP weights
+
+```{bash, message=FALSE, eval=F}
+
+od=${wd}/BLUP_Bslne_bdsz
+cd ${od}
+
+for batch in {1..10}
+do
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt)  |; ${bind}/osca --befile ${od}/BodFiles/UKB_allVertices --keep ${wd}/UKB_ID_crossValidation_${batch}.txt  --blup-probe ${od}/\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt).${batch}.indi.blp --out ${od}/BLUP.allVertices.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt).${batch} --thread-num 5 " 5 50G BLUP_CV_blp_${batch} 48:00:00 "-array=1-43 -acct=UQ-IMB-CNSG" 
+done
+
+```
+
+## Calculate BLUP scores
+
+```{bash, message=FALSE, eval=F}
+
+od=${wd}/BLUP_Bslne_bdsz
+cd ${od}
+
+for batch in {1..10}
+do
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt) |; ${bind}/osca --befile ${wd}/BodFiles/UKB_allVertices --score ${od}/BLUP.allVertices.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt).${batch}.probe.blp --remove ${wd}/UKB_ID_crossValidation_${batch}.txt --out ${od}/BLUP.allVertices.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt).${batch} " 1 12G BLUP_CV_eval_${batch} 48:00:00 "-array=1-43 -acct=UQ-IMB-CNSG" 
+done
+
+```
+
+# BLUP scores from full discovery sample for out of sample prediction
+
+We now assume you have an indepdenent sample, processed the same way as the discovery sample  
+BOD files have been created for this independent sample, which may be another cohort (e.g. HCP) or a later release of the UKB (UKB replication) as per our manuscript  
+
+## BLUP weights on full discovery sample
+
+We have combined the 2 steps above into a single script for simplicity  
+
+```{bash, message=FALSE, eval=F}
+
+blupd=${wd}/BLUP_Bslne_bdsz
+
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt) |; 
+${bind}/osca --reml --orm ${wd}/BodFiles/allVerticesBRM_QC --pheno ${wd}/Phenotypes_15K/UKB_phenotypes_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt)_reg.txt --reml-pred-rand --out ${blupd}/\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt) --reml-maxit 10000 |;
+" 5 50G BLUP_FullSample_indi 48:00:00 "-array=1-43 -acct=UQ-IMB-CNSG" 
+
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt)  |; ${bind}/osca --befile ${wd}/BodFiles/UKB_allVertices --blup-probe ${blupd}/\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt).indi.blp --out ${blupd}/BLUP.allVertices.\$(sed -n \"\${TASK_ID}{p;q}\" ${wd}/UKB_Phenotypes_signif_Bslne_bdsz.txt) --thread-num 5 " 5 50G BLUP_FullSample_blp 48:00:00 "-array=1-43 -acct=UQ-IMB-CNSG" 
+
+```
+
+## Calculate BLUP score for the independent sample 
+
+```{bash, message=FALSE, eval=F}
+
+# Previous directories
+blupd=${wd}/BLUP_Bslne_bdsz
+
+# New directories
+ind="directory/with/independent/sample/bod/files"
+od="output/directory/for/BLUP/scores"
+cd ${od}
+
+${bind}/qsubshcom  "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt) |; 
+"${bind}"/osca --befile "${ind}"/UKB_allVertices --score "${blupd}"/BLUP.allVertices.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt).probe.blp --out "${od}"/BLUP.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne_bdsz.txt) " 1 25G BLUP_score_UKB_replication 02:00:00 "-array=1-52 -acct=UQ-IMB-CNSG" 
+
+```
+
+# Evaluate prediction accuracy
+
+Example of evaluating prediction in the UKB replication sample. In addition to training BLUP weights on phenotypes with covariates regressed out, we also evaluate BLUP scores while controlling for the same covariates.  
+
+## Open Phenotypes and variable list
+
+```{R, message=FALSE, eval=F}
+
+# Open 15K - january2019 data
+TT=read.csv("UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv")
+# Using read_csv makes a df and does not allow to call TT[,columnName]
+
+# Phenotype list with labels and category
+phe=read.csv("UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv", stringsAsFactors = F)
+
+# Subset 
+signi=read.table("UKB_Phenotypes_signif_Bslne.txt")
+phe=phe[which(phe$V4 %in% signi$V1),]
+
+# In our example the first column is the predicted variable (used in training), the 4th column is the new variable that we are trying to predict. In some cases the names are the same, the differences come from different naming conventions in the ukbtools package between our data update.  
+
+```
+
+# Read BLUP scores and merge with phenotype file
+
+```{R, message=FALSE, eval=F}
+
+BRSdat=as.data.frame(TT$eid)
+colnames(BRSdat)="eid"
+
+for (iii in 1:length(phe$V1)){
+  varLoop=phe$V1[iii]
+  BRSvarLoop=paste0("BRS_", phe$V1[iii]) # BLUP scores are named BRS_phenotypePredicted
+  
+  if (file.exists(paste0("BLUP_Bslne_bdsz/BLUP.", varLoop , ".profile") )){
+  dat=read.table( paste0("BLUP_Bslne_bdsz/BLUP.", varLoop , ".profile") , header=T)
+  dat$FID=NULL
+    dat$PHENO=NULL
+     dat$CNT=NULL
+  colnames(dat)=c("eid", BRSvarLoop)
+  BRSdat=merge(BRSdat, dat, by="eid")
+  }
+}
+
+# Merge TT with BRSdat
+TT2=merge(TT, BRSdat, by="eid")
+
+```
+
+## Evaluate prediction performance in replication set
+
+```{R, message=FALSE, eval=F}
+library(lmtest)
+library(pROC)
+res=NULL
+
+# Loop on subset of phenotypes for which BRS was calculated 
+for (varLoop in phe$V1){
+
+BRSvarLoop=paste0("BRS_", varLoop) # Name of the BLUP score
+newVarLoop=phe$V4[which(phe$V1==varLoop)] # Phenotype to predict in independent sample
+    
+  # Fixed effect R2
+m1<-lm(formula = as.formula(paste0(newVarLoop," ~  Age_MRI +  sexuses_datacoding_9_f31_0_0 + ICV + LThickness + RThickness + LSurfArea + RSurfArea + standing_height_f50_2_0 + weight_f21002_2_0 + body_mass_index_bmi_f21001_2_0 "))  , data = TT2)
+ 
+m2<-lm(formula = as.formula(paste0(newVarLoop," ~ ", BRSvarLoop, "+ Age_MRI +  sexuses_datacoding_9_f31_0_0 + ICV + LThickness + RThickness + LSurfArea + RSurfArea + standing_height_f50_2_0 + weight_f21002_2_0 + body_mass_index_bmi_f21001_2_0 "))  , data = TT2)
+ 
+mICV<-as.data.frame(summary(m2)$coefficients)
+# Add values of interest
+mICV$R2<-NA
+mICV[BRSvarLoop, "R2_cov"]<-summary(m1)$adj.r.squared
+mICV[BRSvarLoop, "R2"]<-summary(m2)$adj.r.squared
+lmt=lrtest(m1,m2)
+mICV[BRSvarLoop, "pval"]<-lmt$`Pr(>Chisq)`[2]
+mICV[BRSvarLoop, "chisQ"]<-lmt$Chisq[2]
+mICV[BRSvarLoop, "df"]<-lmt$Df[2]
+mICV[BRSvarLoop, "R2_final"]<-mICV[BRSvarLoop, "R2"]-mICV[BRSvarLoop, "R2_cov"]
+
+# Get AUC for discrete variables
+if (length(table(TT2[,newVarLoop]))<3){
+mICV[BRSvarLoop, "auc"]<-auc(TT2[,newVarLoop], TT2[,BRSvarLoop])
+mICV[BRSvarLoop, "auc.se"]<-sqrt(var(roc(TT2[,newVarLoop]~ TT2[,BRSvarLoop])))
+} else{
+mICV[BRSvarLoop, "auc"]<-NA
+mICV[BRSvarLoop, "auc.se"]<-NA
+}
+
+res<-rbind(res,cbind(BRSvarLoop,  newVarLoop, mICV[BRSvarLoop,]) )
+
+}
+
+# Write results
+write.csv(res, "BLUP_prediction_UKBreplication_Bslne_bdsz.csv")
+
+```
+
+
+<br><br>

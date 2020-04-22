@@ -1,0 +1,309 @@
+---
+title: "Create tables of cortical and subcortical measurements"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+# Extract ROI values from FreeSurfer parcellation 
+
+Such tables are not the main ones used in the analyses but they contain ICV and other useful measurements  
+They correspond to the ENIGMA - average values used by the ENIGMA consortium (LandRVolumes and ThickAvg / SurfAvg files)  
+
+NOTE: this code is identical to that of the ENIGMA processing protocols  
+<http://enigma.ini.usc.edu/protocols/imaging-protocols/>  
+
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do
+echo ${batch}
+cd ${wd}/FS/FSresults/batch${batch}
+
+echo 'SubjID,L_bankssts_thickavg,L_caudalanteriorcingulate_thickavg,L_caudalmiddlefrontal_thickavg,L_cuneus_thickavg,L_entorhinal_thickavg,L_fusiform_thickavg,L_inferiorparietal_thickavg,L_inferiortemporal_thickavg,L_isthmuscingulate_thickavg,L_lateraloccipital_thickavg,L_lateralorbitofrontal_thickavg,L_lingual_thickavg,L_medialorbitofrontal_thickavg,L_middletemporal_thickavg,L_parahippocampal_thickavg,L_paracentral_thickavg,L_parsopercularis_thickavg,L_parsorbitalis_thickavg,L_parstriangularis_thickavg,L_pericalcarine_thickavg,L_postcentral_thickavg,L_posteriorcingulate_thickavg,L_precentral_thickavg,L_precuneus_thickavg,L_rostralanteriorcingulate_thickavg,L_rostralmiddlefrontal_thickavg,L_superiorfrontal_thickavg,L_superiorparietal_thickavg,L_superiortemporal_thickavg,L_supramarginal_thickavg,L_frontalpole_thickavg,L_temporalpole_thickavg,L_transversetemporal_thickavg,L_insula_thickavg,R_bankssts_thickavg,R_caudalanteriorcingulate_thickavg,R_caudalmiddlefrontal_thickavg,R_cuneus_thickavg,R_entorhinal_thickavg,R_fusiform_thickavg,R_inferiorparietal_thickavg,R_inferiortemporal_thickavg,R_isthmuscingulate_thickavg,R_lateraloccipital_thickavg,R_lateralorbitofrontal_thickavg,R_lingual_thickavg,R_medialorbitofrontal_thickavg,R_middletemporal_thickavg,R_parahippocampal_thickavg,R_paracentral_thickavg,R_parsopercularis_thickavg,R_parsorbitalis_thickavg,R_parstriangularis_thickavg,R_pericalcarine_thickavg,R_postcentral_thickavg,R_posteriorcingulate_thickavg,R_precentral_thickavg,R_precuneus_thickavg,R_rostralanteriorcingulate_thickavg,R_rostralmiddlefrontal_thickavg,R_superiorfrontal_thickavg,R_superiorparietal_thickavg,R_superiortemporal_thickavg,R_supramarginal_thickavg,R_frontalpole_thickavg,R_temporalpole_thickavg,R_transversetemporal_thickavg,R_insula_thickavg,LThickness,RThickness,LSurfArea,RSurfArea,ICV' > ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+echo 'SubjID,L_bankssts_surfavg,L_caudalanteriorcingulate_surfavg,L_caudalmiddlefrontal_surfavg,L_cuneus_surfavg,L_entorhinal_surfavg,L_fusiform_surfavg,L_inferiorparietal_surfavg,L_inferiortemporal_surfavg,L_isthmuscingulate_surfavg,L_lateraloccipital_surfavg,L_lateralorbitofrontal_surfavg,L_lingual_surfavg,L_medialorbitofrontal_surfavg,L_middletemporal_surfavg,L_parahippocampal_surfavg,L_paracentral_surfavg,L_parsopercularis_surfavg,L_parsorbitalis_surfavg,L_parstriangularis_surfavg,L_pericalcarine_surfavg,L_postcentral_surfavg,L_posteriorcingulate_surfavg,L_precentral_surfavg,L_precuneus_surfavg,L_rostralanteriorcingulate_surfavg,L_rostralmiddlefrontal_surfavg,L_superiorfrontal_surfavg,L_superiorparietal_surfavg,L_superiortemporal_surfavg,L_supramarginal_surfavg,L_frontalpole_surfavg,L_temporalpole_surfavg,L_transversetemporal_surfavg,L_insula_surfavg,R_bankssts_surfavg,R_caudalanteriorcingulate_surfavg,R_caudalmiddlefrontal_surfavg,R_cuneus_surfavg,R_entorhinal_surfavg,R_fusiform_surfavg,R_inferiorparietal_surfavg,R_inferiortemporal_surfavg,R_isthmuscingulate_surfavg,R_lateraloccipital_surfavg,R_lateralorbitofrontal_surfavg,R_lingual_surfavg,R_medialorbitofrontal_surfavg,R_middletemporal_surfavg,R_parahippocampal_surfavg,R_paracentral_surfavg,R_parsopercularis_surfavg,R_parsorbitalis_surfavg,R_parstriangularis_surfavg,R_pericalcarine_surfavg,R_postcentral_surfavg,R_posteriorcingulate_surfavg,R_precentral_surfavg,R_precuneus_surfavg,R_rostralanteriorcingulate_surfavg,R_rostralmiddlefrontal_surfavg,R_superiorfrontal_surfavg,R_superiorparietal_surfavg,R_superiortemporal_surfavg,R_supramarginal_surfavg,R_frontalpole_surfavg,R_temporalpole_surfavg,R_transversetemporal_surfavg,R_insula_surfavg,LThickness,RThickness,LSurfArea,RSurfArea,ICV' > ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+
+for subj_id in $(ls -d *); do
+echo ${subj_id}
+printf "%s,"  "${subj_id}" >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+printf "%s,"  "${subj_id}" >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+
+for side in lh.aparc.stats rh.aparc.stats; do
+
+for x in bankssts caudalanteriorcingulate caudalmiddlefrontal cuneus entorhinal fusiform inferiorparietal inferiortemporal isthmuscingulate lateraloccipital lateralorbitofrontal lingual medialorbitofrontal middletemporal parahippocampal paracentral parsopercularis parsorbitalis parstriangularis pericalcarine postcentral posteriorcingulate precentral precuneus rostralanteriorcingulate rostralmiddlefrontal superiorfrontal superiorparietal superiortemporal supramarginal frontalpole temporalpole transversetemporal insula; do
+
+printf "%g," `grep -w ${x} ${subj_id}/stats/${side} | awk '{print $5}'` >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+printf "%g," `grep -w ${x} ${subj_id}/stats/${side} | awk '{print $3}'` >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+
+done
+done
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/lh.aparc.stats | grep MeanThickness | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/rh.aparc.stats | grep MeanThickness | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/lh.aparc.stats | grep MeanThickness | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/rh.aparc.stats | grep MeanThickness | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/lh.aparc.stats | grep WhiteSurfArea | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/rh.aparc.stats | grep WhiteSurfArea | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/lh.aparc.stats | grep WhiteSurfArea | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+printf "%g," `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/rh.aparc.stats | grep WhiteSurfArea | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+printf "%g" `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/aseg.stats | grep IntraCranialVol | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+printf "%g" `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/aseg.stats | grep IntraCranialVol | awk -F, '{print $4}'` >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+echo "" >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv
+echo "" >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv
+done
+done
+
+```
+
+# Check that indivs with missing data were the ones labelled "unusable" by the biobank
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do
+echo ${batch}
+cd ${wd}/FS/FSresults/batch${batch}
+
+for subj_id in $(ls -d *); do 
+
+if [ ! -f ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/lh.aparc.stats ]
+then
+echo ${subj_id} 
+ls -d ${medici}/T1/unzip/batch${batch}/${subj_id}/T1/*
+fi
+done
+done
+
+```
+
+# Extract subcortical volumes 
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do
+echo ${batch}
+cd ${wd}/FS/FSresults/batch${batch}
+
+echo "SubjID,Left-Lateral-Ventricle,Right-Lateral-Ventricle,Left-Thalamus-Proper,Right-Thalamus-Proper,Left-Caudate,Right-Caudate,Left-Putamen,Right-Putamen,Left-Pallidum,Right-Pallidum,Left-Hippocampus,Right-Hippocampus,Left-Amygdala,Right-Amygdala,Left-Accumbens-area,Right-Accumbens-area,Left-Inf-Lat-Vent,Left-Cerebellum-White-Matter,Left-Cerebellum-Cortex,3rd-Ventricle,4th-Ventricle,Brain-Stem,CSF,Left-VentralDC,Left-vessel,Left-choroid-plexus,Right-Inf-Lat-Vent,Right-Cerebellum-White-Matter,Right-Cerebellum-Cortex,Right-VentralDC,Right-vessel,Right-choroid-plexus,WM-hypointensities,Optic-Chiasm,CC_Posterior,CC_Mid_Posterior,CC_Central,CC_Mid_Anterior,CC_Anterior,ICV" > ${wd}/FS/LandRvolumes_batch${batch}.csv
+
+for subj_id in `ls -d *`; do 
+printf "%s,"  "${subj_id}" >> ${wd}/FS/LandRvolumes_batch${batch}.csv
+for x in Left-Lateral-Ventricle Right-Lateral-Ventricle Left-Thalamus-Proper Right-Thalamus-Proper Left-Caudate Right-Caudate Left-Putamen Right-Putamen Left-Pallidum Right-Pallidum Left-Hippocampus Right-Hippocampus Left-Amygdala Right-Amygdala Left-Accumbens-area Right-Accumbens-area Left-Inf-Lat-Vent Left-Cerebellum-White-Matter Left-Cerebellum-Cortex 3rd-Ventricle 4th-Ventricle Brain-Stem CSF Left-VentralDC Left-vessel Left-choroid-plexus Right-Inf-Lat-Vent Right-Cerebellum-White-Matter Right-Cerebellum-Cortex Right-VentralDC Right-vessel Right-choroid-plexus WM-hypointensities Optic-Chiasm CC_Posterior CC_Mid_Posterior CC_Central CC_Mid_Anterior CC_Anterior; do
+printf "%g," `grep  ${x} ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/aseg.stats | awk '{print $4}'` >> ${wd}/FS/LandRvolumes_batch${batch}.csv
+done
+printf "%g" `cat ${wd}/FS/FSresults/batch${batch}/${subj_id}/stats/aseg.stats | grep IntraCranialVol | awk -F, '{print $4}'` >> ${wd}/FS/LandRvolumes_batch${batch}.csv
+echo "" >> ${wd}/FS/LandRvolumes_batch${batch}.csv
+done
+done
+
+```
+
+# Combine ENIGMA ROI files across batches
+
+```{bash, message=FALSE, eval=FALSE}
+
+# Initialise
+cp ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch1.csv ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_UKB.csv
+cp ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch1.csv ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_UKB.csv
+cp ${wd}/FS/LandRvolumes_batch1.csv ${wd}/FS/LandRvolumes.csv
+
+for batch in {2..5}
+do
+echo ${batch}
+tail -n +2 ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_batch${batch}.csv >> ${wd}/FS/CorticalMeasuresENIGMA_ThickAvg_UKB.csv
+tail -n +2 ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_batch${batch}.csv >> ${wd}/FS/CorticalMeasuresENIGMA_SurfAvg_UKB.csv
+
+sed 's/,\+/ /g' ${wd}/FS/LandRvolumes_batch${batch}.csv  > ${wd}/FS/LandRvolumes_batch${batch}.txt
+sed '1d' ./LandRvolumes_batch${batch}.txt >> ./LandRvolumes.txt
+done
+
+```
+
+# Extract cortical vertex-wise data
+
+Here, I got a bit lazy and did not write the piece of code to initialise automatically the vertexnames  
+Instead I initialise using one individual (batch1/1002XXX) for which I checked processing went well  
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do
+for hemi in lh rh
+do
+for moda in area thickness
+do
+echo ${hemi}.${moda}
+
+${bind}/qsubshcom " echo \"vertexnum\" > "${wd}"/FS/"${hemi}"."${moda}".batch"${batch}".fwhm0.UKB.txt |; 
+awk '{print \$1}' "${wd}"/FS/FSresults/batch1/1002XXX/"${hemi}"."${moda}".fwhm0.fsaverage.asc >> "${wd}"/FS/"${hemi}"."${moda}".batch"${batch}".fwhm0.UKB.txt |;
+for ID in \$(awk -F\",\" \"NR>0 {print \$1}\" "${medici}"/T1/raw/batch"${batch}"/T1_fetch_batch"${batch}".lis) |;
+do |;
+ID=\${ID:0:7} |;
+echo \${ID} |;
+if [ -f "${wd}"/FS/FSresults/batch${batch}/\${ID}/"${hemi}"."${moda}".fwhm0.fsaverage.asc ] |;
+then |;
+echo \${ID} > "${wd}"/FS/"${hemi}"."${moda}"."${batch}".temp.lta |;
+awk '{print \$5}' "${wd}"/FS/FSresults/batch${batch}/\${ID}/"${hemi}"."${moda}".fwhm0.fsaverage.asc >> "${wd}"/FS/"${hemi}"."${moda}"."${batch}".temp.lta |;
+paste "${wd}"/FS/"${hemi}"."${moda}".batch"${batch}".fwhm0.UKB.txt "${wd}"/FS/"${hemi}"."${moda}"."${batch}".temp.lta > "${wd}"/FS/"${hemi}"."${moda}"."${batch}".temp2.lta |;
+cp "${wd}"/FS/"${hemi}"."${moda}"."${batch}".temp2.lta "${wd}"/FS/"${hemi}"."${moda}".batch"${batch}".fwhm0.UKB.txt |;
+fi |; done " 1 4G ExtractData_${batch} 48:00:00 " -acct=UQ-IMB-CNSG"
+done
+done
+done
+
+```
+
+# Extract subcortical vertex-wise data
+
+Code provided by Boris Gutman in the ENIGMA-shape package  
+
+```{bash, message=FALSE, eval=FALSE}
+
+# create csv ID list (required input)
+for batch in {1..5}
+do
+cd ${wd}/FS/ENIGMAshapeResults/batch${batch}/
+echo "ID,V2" > ${wd}/FS/groupfile_batch${batch}.csv 
+for d in */ ; do
+ID=${d:0:7}
+    echo ${ID},V2 >> ${wd}/FS/groupfile_batch${batch}.csv 
+done
+done
+
+# Create files
+# Replace /working/directory/ by the actual path
+for batch in {1..5}
+do
+# Define variables
+groupfile="/working/directory/FS/groupfile_batch"${batch}".csv"
+filename=$(basename "${groupfile}")
+extension="${filename##*.}"
+filename="${filename%.*}"
+
+echo ${groupfile}
+# Create left and right datasets
+setROIS="10 11 12 13 17 18 26"
+${wd}/ENIGMA_shape/MedialDemonsShared/bin/raw_list2CSV_matrix ${wd}/FS/${filename}_LogJacs_lh.csv ${wd}/ENIGMA_shape/MedialDemonsShared/atlas GOF ${setROIS} LogJacs resliced_mesh ${groupfile} ${wd}/FS/ENIGMAshapeResults/batch${batch}
+
+${wd}/ENIGMA_shape/MedialDemonsShared/bin/raw_list2CSV_matrix ${wd}/FS/${filename}_thick_lh.csv ${wd}/ENIGMA_shape/MedialDemonsShared/atlas GOF ${setROIS} thick resliced_mesh ${groupfile} ${wd}/FS/ENIGMAshapeResults/batch${batch}
+
+setROIS="49 50 51 52 53 54 58"
+${wd}/ENIGMA_shape/MedialDemonsShared/bin/raw_list2CSV_matrix ${wd}/FS/${filename}_LogJacs_rh.csv ${wd}/ENIGMA_shape/MedialDemonsShared/atlas GOF ${setROIS} LogJacs resliced_mesh ${groupfile} ${wd}/FS/ENIGMAshapeResults/batch${batch}
+
+${wd}/ENIGMA_shape/MedialDemonsShared/bin/raw_list2CSV_matrix ${wd}/FS/${filename}_thick_rh.csv ${wd}/ENIGMA_shape/MedialDemonsShared/atlas GOF ${setROIS} thick resliced_mesh ${groupfile} ${wd}/FS/ENIGMAshapeResults/batch${batch}
+
+# Convert csv to text with space delimited
+sed 's/,\+/ /g' ${wd}/FS/${filename}_LogJacs_lh.csv  > ${wd}/FS/${filename}_LogJacs_lh.txt
+
+sed 's/,\+/ /g' ${wd}/FS/${filename}_LogJacs_rh.csv  > ${wd}/FS/${filename}_LogJacs_rh.txt
+
+sed 's/,\+/ /g' ${wd}/FS/${filename}_thick_lh.csv  > ${wd}/FS/${filename}_thick_lh.txt
+
+sed 's/,\+/ /g' ${wd}/FS/${filename}_thick_rh.csv  > ${wd}/FS/${filename}_thick_rh.txt
+done
+
+```
+
+# Check dimension of output files (example)
+
+```{bash, message=FALSE, eval=FALSE}
+
+for batch in {1..5}
+do
+echo ${batch}
+awk '{print NF}' ${wd}/FS/lh.area.batch${batch}.fwhm0.UKB.txt | sort -nu | tail -n 1
+cat ${wd}/FS/lh.area.batch${batch}.fwhm0.UKB.txt | wc -l
+done
+
+```
+
+# Rename vertices and create final text files combining all batches
+
+## Cortical data
+
+Note that we add the prefixes rht, lht, rha and lha to cortical vertices numbers in order to avoid duplicates when we will put all vertices togeter  
+
+```{bash, message=FALSE, eval=FALSE}
+
+# Initialise
+awk 'BEGIN{OFS="\t"}$1="rht_"$1' ${wd}/FS/rh.thickness.batch1.fwhm0.UKB.txt > ${wd}/FS/rh.thickness.fwhm0.UKB.txt
+awk 'BEGIN{OFS="\t"}$1="lht_"$1' ${wd}/FS/lh.thickness.batch1.fwhm0.UKB.txt > ${wd}/FS/lh.thickness.fwhm0.UKB.txt
+awk 'BEGIN{OFS="\t"}$1="rha_"$1' ${wd}/FS/rh.area.batch1.fwhm0.UKB.txt > ${wd}/FS/rh.area.fwhm0.UKB.txt
+awk 'BEGIN{OFS="\t"}$1="lha_"$1' ${wd}/FS/lh.area.batch1.fwhm0.UKB.txt > ${wd}/FS/lh.area.fwhm0.UKB.txt
+
+# Get rid of vertices (row names) and append batch file to the global one
+for batch in {2..5}
+do
+for moda in thickness area
+do
+for hemi in lh rh
+do 
+ echo ${batch}.${hemi}.${moda}.
+# Get rid row names (1st column)
+awk '{$1=""}1' ${wd}/FS/${hemi}.${moda}.batch${batch}.fwhm0.UKB.txt | awk '{$1=$1}1' > ${wd}/FS/${hemi}.${moda}.batch${batch}.fwhm0.UKB_noColNames.temp
+# Paste to the combined file        
+paste ${wd}/FS/${hemi}.${moda}.fwhm0.UKB.txt ${wd}/FS/${hemi}.${moda}.batch${batch}.fwhm0.UKB_noColNames.temp > ${wd}/FS/${hemi}.${moda}.fwhm0.UKB_2.temp
+cp ${wd}/FS/${hemi}.${moda}.fwhm0.UKB_2.temp ${wd}/${hemi}.${moda}.fwhm0.UKB.txt
+done
+done 
+done
+
+# Check dimension quickly
+awk '{print NF}' ${wd}/FS/lh.area.fwhm0.UKB.txt | sort -nu | tail -n 1
+cat ${wd}/FS/lh.area.fwhm0.UKB.txt | wc -l
+
+```
+
+# Subcortical data
+
+We kept the vertex names used in the ENIGMA-shape package, which are all unique  
+```{bash, message=FALSE, eval=FALSE}
+
+# Initialise
+for moda in thick LogJacs
+do
+for hemi in lh rh
+do 
+echo ${hemi}.${moda}
+cp $wd/FS/groupfile_batch1_${moda}_${hemi}.txt $wd/FS/${hemi}.${moda}.transposed.txt
+done 
+done
+
+# Append
+for batch in {2..10}
+do
+# Get rid of vertices (row names) of files  
+for moda in thick LogJacs
+do
+for hemi in lh rh
+do 
+echo ${batch}.${hemi}.${moda}
+tail -n +2 ${wd}/FS/groupfile_batch${batch}_${moda}_${hemi}.txt >> ${wd}/FS/${hemi}.${moda}.transposed.txt
+done
+done 
+done
+
+```
+
+# Tidy up, delete files to make room for more processing
+
+```{bash, message=FALSE, eval=FALSE}
+
+# Tar outputs from processing into large tarballs - by batch to faciliate re-use
+for batch in {1..5}
+do
+# Tar and move FS folder
+cd ${medici}/UKB_processing
+tar -cvf FreeSurferProcessed_FSresults_batch${batch} ${wd}/FS/FSresults/batch${batch}
+tar -cvf FreeSurferProcessed_ENIGMAshapeResults_batch${batch} ${wd}/FS/ENIGMAshapeResults/batch${batch}
+done 
+
+# Example of untarring a single tarball
+tar -C /new/working/directory -xvf ${medici}/Archive_FSProcessing/FreeSurferProcessed_batch3
+
+```
+
+<br><br>

@@ -1,0 +1,471 @@
+---
+title: "UKB phenotypic data formatting"
+author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
+output:
+  epuRate::PCTG:
+    toc: TRUE
+    code_folding: "show"
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# You need these libraries to run this template:
+library(rmarkdown)    # install.packages("rmarkdown") 
+library(epuRate)      # devtools::install_github("holtzy/epuRate", force=TRUE)
+library(readr)
+
+```
+
+# Open data
+
+We have created a csv file using the R package *ukbtools* which contains all phenotypes available as part of our application, but limited to the participants imaged  
+This reduces massively the size of the data and allows quicker handler with R  
+
+**We use the column names generated with ukbtools but do not use data completely recoded as we want to keep numeric values in the variables, even for discrete variables** 
+This is because OSCA does not accept factors, and requires discrete phenotypes to be coded with numbers  
+
+```{R, message=FALSE, eval=F}
+
+TT=read_csv( "UKB_phenotypes_15K_allData_Jan2019Update.csv")
+
+```
+
+# Create new variables or reformat into more meaninful variables
+
+Note that we have found different versions of ukbtools (typically between on discovery and replication analyses) to behave slightly differently, in particular when setting new variable names  
+This may explain some problems you may experience when running our code (check your variable names, date format, and labels of discrete variables)  
+
+```{R, message=FALSE, eval=F}
+
+# Age at MRI
+TT$Age_MRI<-NA
+TT$Date_birth<-paste("01", TT$month_of_birth_f52_0_0, TT$year_of_birth_f34_0_0, sep = "-")
+TT$Date_birth<-as.Date(TT$Date_birth, "%d-%m-%Y") 
+TT$date_of_attending_assessment_centre_f53_2_0<-as.Date(TT$date_of_attending_assessment_centre_f53_2_0, "%Y-%m-%d")
+TT$Age_MRI<-as.numeric(TT$date_of_attending_assessment_centre_f53_2_0-TT$Date_birth)/365.25
+
+hist(TT$Age_MRI, breaks = 500)
+length(which(is.na(TT$Age_MRI))) # No missing value
+
+# Sex variable changed name when updating ukbtools - sexuses_datacoding_9_f31_0_0 coded 0-1 became sex_f31_0_0 coded Female-Male
+# We duplicated the sex variable in sexuses_datacoding_9_f31_0_0 so the code did not have to be changed in whole analysis
+TT$sexuses_datacoding_9_f31_0_0=TT$sex_f31_0_0
+
+# Create some cognition variables
+TT$percent_correct_digit_matches_0_0<-TT$number_of_symbol_digit_matches_made_correctly_f20159_0_0/TT$number_of_symbol_digit_matches_attempted_f20195_0_0
+TT$percent_correct_digit_matches_0_0_binary=ifelse(TT$percent_correct_digit_matches_0_0==1, 1, 0)
+
+# Number of diagnoses - 15045 participants extracted from the mental health section (10743)
+# Meaning all missing values are negative answers (i.e. none of the above)
+TT$Number_mental_health_problems_diagnoses_f20544=rowSums(!is.na(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", 1:16)]))
+
+# Extract specific diagnoses
+TT$SocialAnxietySocialPhobia=0
+TT$Schizophrenia=0
+TT$PsychosisNotSchizophrenia=0
+TT$PersonalityDisorder=0
+TT$Phobia=0
+TT$PanicAttacks=0
+TT$OCD=0
+TT$ManiaBipolar=0
+TT$Depression=0
+TT$Bulimia=0
+TT$BingeEating=0
+TT$Autism=0
+TT$AnxietyGAD=0
+TT$Anorexia=0
+TT$Agoraphobia=0
+TT$ADHD=0
+
+for (iii in 1:16){
+  TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==1 ),"SocialAnxietySocialPhobia"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==2 ),"Schizophrenia"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==3 ),"PsychosisNotSchizophrenia"]=1
+ 
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==4 ),"PersonalityDisorder"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==5 ),"Phobia"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==6 ),"PanicAttacks"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==7 ),"OCD"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==10 ),"ManiaBipolar"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==11 ),"Depression"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==12 ),"Bulimia"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==13 ),"BingeEating"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==14),"Autism"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==15 ),"AnxietyGAD"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==16 ),"Anorexia"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==17 ),"Agoraphobia"]=1
+ TT[which(TT[,paste0("mental_health_problems_ever_diagnosed_by_a_professionaluses_datacoding_1401_f20544_0_", iii)]==18 ),"ADHD"]=1
+}
+
+# Duplicate a few more variables 
+# tinnitus
+TT$tinnitususes_datacoding_100635_f4803_2_0_binary=TT$tinnitususes_datacoding_100635_f4803_2_0
+TT$tinnitususes_datacoding_100635_f4803_2_0_present=TT$tinnitususes_datacoding_100635_f4803_2_0
+
+# Prospective  memory
+TT$prospective_memory_result_3points_f20018_2_0=TT$prospective_memory_result_f20018_2_0
+TT$prospective_memory_result_3points_f20018_2_0[which(TT$prospective_memory_result_3points_f20018_2_0==1)]=4
+TT$prospective_memory_result_3points_f20018_2_0=TT$prospective_memory_result_3points_f20018_2_0/2
+table(TT$prospective_memory_result_3points_f20018_2_0)
+
+```
+
+# List of variables, categories and labels
+
+Throughout the analyses, we use a few files that contain the variable names, categories and labels  
+They facilitate plotting and looping on variables in the analyses  
+They are available in the GitHub repository  
+
+**The files we share contain more variables than what is presented in the manuscript because it already includes variables we will use in a follow up manuscript**  
+Contact us, if you are interested by results not published yet  
+
+```{R, message=FALSE, eval=F}
+
+UKBvar=read.csv("UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv")
+
+# The different columns are 
+# V1: old variable names (used in discovery samples - old ukbtool version)
+# V2: category
+# V3: label
+# V4: new variable name
+
+```
+
+# Format phenotyes and exclude missing values
+
+
+```{R, message=FALSE, eval=F}
+
+winsoriseNA<-function(var){
+  lb<-mean(TT[,var], na.rm = T)-4*sd(TT[,var], na.rm = T)
+  ub<-mean(TT[,var], na.rm = T)+4*sd(TT[,var], na.rm = T)
+  TT[which(TT[,var]>ub),var]<-NA
+  TT[which(TT[,var]<lb),var]<-NA
+  return(TT[,var])
+}
+
+```
+
+## Demographics 
+
+```{R, message=FALSE, eval=F}
+
+UKBvar$V4[which(UKBvar$V2=="Demographics")]
+TT$average_total_household_income_before_tax_f738_2_0[which(TT$average_total_household_income_before_tax_f738_2_0<0)]<-NA
+TT$age_completed_full_time_education_f845_2_0[which(TT$age_completed_full_time_education_f845_2_0<0)]<-NA
+TT$number_in_household_f709_2_0[which(TT$number_in_household_f709_2_0<0)]<-NA
+TT$number_in_household_f709_2_0[which(TT$number_in_household_f709_2_0>5)]<-6
+table(TT$number_in_household_f709_2_0)
+
+```
+
+## Blood assay 
+
+We excluded outlying values +-4SD because we observed large tails in distributions  
+
+```{R, message=FALSE, eval=F}
+
+baVars=UKBvar$V4[which(UKBvar$V2=="Blood \n assay")]
+for (iii in baVars){
+ TT[,iii]=winsoriseNA(iii)
+}  
+
+```
+
+## Brain phenotypes
+
+ICV and positive control variables  
+
+```{R, message=FALSE, eval=F}
+
+bpVars=UKBvar$V4[which(UKBvar$V2=="Brain \n measurement")] # Set 0 values to NA
+for (iii in bpVars){
+ TT[which(TT[,iii]==0),iii]=NA
+} 
+
+```
+
+## Cognition
+
+```{R, message=FALSE, eval=F}
+
+UKBvar$V4[which(UKBvar$V2=="Cognition")] 
+prop.table(table(TT$prospective_memory_result_f20018_2_0)) # recode into - recalled vs. non recalled
+TT$prospective_memory_result_f20018_2_0[which(TT$prospective_memory_result_f20018_2_0==2)]=1
+TT$prospective_memory_result_f20018_2_0=(TT$prospective_memory_result_f20018_2_0 -1 )*(-1)
+
+TT$maximum_digits_remembered_correctly_f20240_0_0[which(TT$maximum_digits_remembered_correctly_f20240_0_0<0)]<-NA
+TT$maximum_digits_remembered_correctly_f4282_0_0[which(TT$maximum_digits_remembered_correctly_f4282_0_0<0)]<-NA
+
+TT$total_errors_traversing_numeric_path_trail_1_f20247_0_0=winsoriseNA("total_errors_traversing_numeric_path_trail_1_f20247_0_0")
+TT$total_errors_traversing_alphanumeric_path_trail_2_f20248_0_0=winsoriseNA("total_errors_traversing_alphanumeric_path_trail_2_f20248_0_0")
+```
+
+## Diet
+
+```{R, message=FALSE, eval=F}
+
+UKBvar$V4[which(UKBvar$V2=="Diet")] 
+for (diet in UKBvar$V4[which(UKBvar$V2=="Diet")]  ){
+  TT[which(TT[,diet] %in% c(-1,-3)), diet]<-NA
+   TT[which(TT[,diet] == -10), diet]<-0
+ }
+```
+
+## Miscelanious
+
+```{R, message=FALSE, eval=F}
+
+UKBvar$V4[which(UKBvar$V2=="Other")] 
+
+TT$diabetes_diagnosed_by_doctoruses_datacoding_100349_f2443_2_0[which(TT$diabetes_diagnosed_by_doctoruses_datacoding_100349_f2443_2_0<0)]<-NA
+TT$overall_health_rating_f2178_2_0[which(TT$overall_health_rating_f2178_2_0 %in% c(-1,-3))]<-NA
+
+# reverse code - left handed and anbidextrueous - then replace phenotype
+TT$handedness_chiralitylateralityuses_datacoding_100430=TT$handedness_chiralitylaterality_f1707_2_0
+TT$handedness_chiralitylateralityuses_datacoding_100430[which(TT$handedness_chiralitylaterality_f1707_2_0 %in% c(-1,-3))]<-NA
+TT$handedness_chiralitylateralityuses_datacoding_100430[which(TT$handedness_chiralitylaterality_f1707_2_0 ==2)]<-3
+TT$handedness_chiralitylateralityuses_datacoding_100430[which(TT$handedness_chiralitylaterality_f1707_2_0 ==3)]<-2
+TT$handedness_chiralitylaterality_f1707_2_0=TT$handedness_chiralitylateralityuses_datacoding_100430
+
+TT$sleep_duration_f1160_2_0[which(TT$sleep_duration_f1160_2_0 %in% c(-1,-3))]<-NA
+TT$sleeplessness_insomnia_f1200_2_0[which(TT$sleeplessness_insomnia_f1200_2_0 %in% c(-1,-3))]<-NA
+TT$time_spent_watching_television_tv_f1070_2_0[which(TT$time_spent_watching_television_tv_f1070_2_0 %in% c(-1,-3))]<-NA
+TT$time_spent_watching_television_tv_f1070_2_0[which(TT$time_spent_watching_television_tv_f1070_2_0==-10)]<-0
+TT$part_of_a_multiple_birth_f1777_2_0[which(TT$part_of_a_multiple_birth_f1777_2_0<0)]<-NA
+TT$general_happinessuses_datacoding_537_f20458_0_0[which(TT$general_happinessuses_datacoding_537_f20458_0_0<0)]<-NA
+TT$general_happiness_with_own_healthuses_datacoding_537_f20459_0_0[which(TT$general_happiness_with_own_healthuses_datacoding_537_f20459_0_0<0)]<-NA
+
+TT$headaches_for_3_monthsuses_datacoding_100349_f3799_2_0[which(TT$headaches_for_3_monthsuses_datacoding_100349_f3799_2_0<0)]<-NA
+
+TT$hearing_difficultyproblemsuses_datacoding_100631_f2247_2_0[which(TT$hearing_difficultyproblemsuses_datacoding_100631_f2247_2_0<0)]<-NA
+TT$hearing_difficultyproblemsuses_datacoding_100631_f2247_2_0[which(TT$hearing_difficultyproblemsuses_datacoding_100631_f2247_2_0==99)]<-1
+
+TT$hearing_difficultyproblems_with_background_noiseuses_datacoding_100349_f2257_2_0[which(TT$hearing_difficultyproblems_with_background_noiseuses_datacoding_100349_f2257_2_0<0)]<-NA
+TT$hearing_aid_useruses_datacoding_100352_f3393_2_0[which(TT$hearing_aid_useruses_datacoding_100352_f3393_2_0<0)]<-NA
+
+
+TT$tinnitususes_datacoding_100635_f4803_2_0_binary[which(TT$tinnitususes_datacoding_100635_f4803_2_0_binary<0)]=NA
+TT$tinnitususes_datacoding_100635_f4803_2_0_binary[which(TT$tinnitususes_datacoding_100635_f4803_2_0_binary>0)]=1
+
+TT$tinnitususes_datacoding_100635_f4803_2_0_present[which(TT$tinnitususes_datacoding_100635_f4803_2_0_present<0)]=NA
+TT$tinnitususes_datacoding_100635_f4803_2_0_present[which(TT$tinnitususes_datacoding_100635_f4803_2_0_present==14)]=0
+TT$tinnitususes_datacoding_100635_f4803_2_0_present[which(TT$tinnitususes_datacoding_100635_f4803_2_0_present==13)]=1
+TT$tinnitususes_datacoding_100635_f4803_2_0_present[which(TT$tinnitususes_datacoding_100635_f4803_2_0_present==12)]=2
+TT$tinnitususes_datacoding_100635_f4803_2_0_present[which(TT$tinnitususes_datacoding_100635_f4803_2_0_present==11)]=3
+
+TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0[which(TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0<0)]=NA
+TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0[which(TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0==4)]=0
+TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0[which(TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0==13)]=1
+TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0[which(TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0==12)]=2
+TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0[which(TT$tinnitus_severitynuisanceuses_datacoding_100636_f4814_2_0==11)]=3
+
+TT$wears_glasses_or_contact_lensesuses_datacoding_100352_f2207_2_0[which(TT$wears_glasses_or_contact_lensesuses_datacoding_100352_f2207_2_0<0)]=NA
+
+TT$time_spend_outdoors_in_summer_f1050_2_0[which(TT$time_spend_outdoors_in_summer_f1050_2_0 %in% c(-1,-3))]<-NA
+TT$time_spend_outdoors_in_summer_f1050_2_0[which(TT$time_spend_outdoors_in_summer_f1050_2_0 ==-10)]<-0
+
+TT$time_spent_outdoors_in_winter_f1060_2_0[which(TT$time_spent_outdoors_in_winter_f1060_2_0 %in% c(-1,-3))]<-NA
+TT$time_spent_outdoors_in_winter_f1060_2_0[which(TT$time_spent_outdoors_in_winter_f1060_2_0 ==-10)]<-0
+
+TT$time_spent_using_computer_f1080_2_0[which(TT$time_spent_using_computer_f1080_2_0 %in% c(-1,-3))]<-NA
+TT$time_spent_using_computer_f1080_2_0[which(TT$time_spent_using_computer_f1080_2_0 ==-10)]<-0
+
+TT$time_spent_driving_f1090_2_0[which(TT$time_spent_driving_f1090_2_0 %in% c(-1,-3))]<-NA
+TT$time_spent_driving_f1090_2_0[which(TT$time_spent_driving_f1090_2_0 ==-10)]<-0
+
+TT$morningevening_person_chronotype_f1180_2_0[which(TT$morningevening_person_chronotype_f1180_2_0<0)]=NA
+
+TT$daytime_dozing_sleeping_narcolepsy_f1220_2_0[which(TT$daytime_dozing_sleeping_narcolepsy_f1220_2_0<0)]=NA
+TT$breastfed_as_a_baby_f1677_2_0[which(TT$breastfed_as_a_baby_f1677_2_0<0)]=NA
+TT$maternal_smoking_around_birth_f1787_2_0[which(TT$maternal_smoking_around_birth_f1787_2_0<0)]=NA
+TT$started_insulin_within_one_year_diagnosis_of_diabetesuses_datacoding_100349_f2986_2_0[which(TT$started_insulin_within_one_year_diagnosis_of_diabetesuses_datacoding_100349_f2986_2_0<0)]=NA
+```
+
+## Physical test
+
+```{R, message=FALSE, eval=F}
+
+UKBvar$V4[which(UKBvar$V2=="Physical \n test")] 
+
+TT$number_of_daysweek_walked_10_minutes_f864_2_0[which(TT$number_of_daysweek_walked_10_minutes_f864_2_0<0)]<-NA
+
+TT$number_of_daysweek_of_moderate_physical_activity_10_minutes_f884_2_0[which(TT$number_of_daysweek_of_moderate_physical_activity_10_minutes_f884_2_0<0)]<-NA
+
+TT$number_of_daysweek_of_vigorous_physical_activity_10_minutes_f904_2_0[which(TT$number_of_daysweek_of_vigorous_physical_activity_10_minutes_f904_2_0<0)]<-NA
+
+TT$overall_acceleration_average_f90012_0_0=winsoriseNA("overall_acceleration_average_f90012_0_0")
+TT$heel_bone_mineral_density_bmd_tscore_automated_f78_0_0=winsoriseNA("heel_bone_mineral_density_bmd_tscore_automated_f78_0_0")
+TT$heel_bone_mineral_density_bmd_f3148_0_0=winsoriseNA("heel_bone_mineral_density_bmd_f3148_0_0")
+```
+
+## Psychiatry
+
+```{R, message=FALSE, eval=F}
+
+UKBvar$V4[which(UKBvar$V2=="Psychiatry")] 
+
+TT$seen_a_psychiatrist_for_nerves_anxiety_tension_or_depression_f2100_2_0[which(TT$seen_a_psychiatrist_for_nerves_anxiety_tension_or_depression_f2100_2_0 %in% c(-1,-3))]<-NA
+TT$seen_doctor_gp_for_nerves_anxiety_tension_or_depression_f2090_2_0[which(TT$seen_doctor_gp_for_nerves_anxiety_tension_or_depression_f2090_2_0 %in% c(-1,-3))]<-NA
+TT$impact_on_normal_roles_during_worst_period_of_anxietyuses_datacoding_510_f20418_0_0[which(TT$impact_on_normal_roles_during_worst_period_of_anxietyuses_datacoding_510_f20418_0_0<0)]<-NA
+TT$impact_on_normal_roles_during_worst_period_of_depressionuses_datacoding_510_f20440_0_0[which(TT$impact_on_normal_roles_during_worst_period_of_depressionuses_datacoding_510_f20440_0_0<0)]<-NA
+TT$ever_felt_worried_tense_or_anxious_for_most_of_a_month_or_longeruses_datacoding_502_f20421_0_0[which(TT$ever_felt_worried_tense_or_anxious_for_most_of_a_month_or_longeruses_datacoding_502_f20421_0_0<0)]<-NA
+TT$age_at_first_episode_of_depressionuses_datacoding_513_f20433_0_0[which(TT$age_at_first_episode_of_depressionuses_datacoding_513_f20433_0_0<0)]<-NA
+TT$ever_had_prolonged_feelings_of_sadness_or_depressionuses_datacoding_503_f20446_0_0[which(TT$ever_had_prolonged_feelings_of_sadness_or_depressionuses_datacoding_503_f20446_0_0<0)]<-NA
+TT$ever_had_prolonged_loss_of_interest_in_normal_activitiesuses_datacoding_503_f20441_0_0[which(TT$ever_had_prolonged_loss_of_interest_in_normal_activitiesuses_datacoding_503_f20441_0_0<0)]<-NA
+TT$ever_had_period_of_mania_excitabilityuses_datacoding_502_f20501_0_0[which(TT$ever_had_period_of_mania_excitabilityuses_datacoding_502_f20501_0_0<0)]<-NA
+TT$ever_had_period_extreme_irritabilityuses_datacoding_502_f20502_0_0[which(TT$ever_had_period_extreme_irritabilityuses_datacoding_502_f20502_0_0<0)]<-NA
+TT$thoughts_of_death_during_worst_depressionuses_datacoding_502_f20437_0_0[which(TT$thoughts_of_death_during_worst_depressionuses_datacoding_502_f20437_0_0<0)]<-NA
+TT$lifetime_number_of_depressed_periodsuses_datacoding_511_f20442_0_0[which(TT$lifetime_number_of_depressed_periodsuses_datacoding_511_f20442_0_0<0)]<-NA
+TT$lifetime_number_of_depressed_periodsuses_datacoding_511_f20442_0_0[which(TT$lifetime_number_of_depressed_periodsuses_datacoding_511_f20442_0_0>10)]<-10
+ 
+# Psychosis
+TT$ever_believed_in_an_unreal_conspiracy_against_selfuses_datacoding_502_f20468_0_0[which(TT$ever_believed_in_an_unreal_conspiracy_against_selfuses_datacoding_502_f20468_0_0<0)]<-NA
+TT$ever_believed_in_unreal_communications_or_signsuses_datacoding_502_f20474_0_0[which(TT$ever_believed_in_unreal_communications_or_signsuses_datacoding_502_f20474_0_0<0)]<-NA
+TT$ever_heard_an_unreal_voiceuses_datacoding_502_f20463_0_0[which(TT$ever_heard_an_unreal_voiceuses_datacoding_502_f20463_0_0<0)]<-NA
+TT$ever_seen_an_unreal_visionuses_datacoding_502_f20471_0_0[which(TT$ever_seen_an_unreal_visionuses_datacoding_502_f20471_0_0<0)]<-NA
+TT$ever_talked_to_a_health_professional_about_unusual_or_psychotic_experiencesuses_datacoding_502_f20477_0_0[which(TT$ever_talked_to_a_health_professional_about_unusual_or_psychotic_experiencesuses_datacoding_502_f20477_0_0<0)]<-NA
+
+# Suicide / self harm
+TT$ever_selfharmeduses_datacoding_503_f20480_0_0[which(TT$ever_selfharmeduses_datacoding_503_f20480_0_0<0)]<-NA
+TT$ever_thought_that_life_not_worth_livinguses_datacoding_535_f20479_0_0[which(TT$ever_thought_that_life_not_worth_livinguses_datacoding_535_f20479_0_0<0)]<-NA
+TT$ever_contemplated_selfharmuses_datacoding_535_f20485_0_0[which(TT$ever_contemplated_selfharmuses_datacoding_535_f20485_0_0<0)]<-NA
+
+# More psychiatry
+TT$severity_of_problems_due_to_mania_or_irritabilityuses_datacoding_516_f20493_0_0[which(TT$severity_of_problems_due_to_mania_or_irritabilityuses_datacoding_516_f20493_0_0<0)]<-NA
+TT$ever_sought_or_received_professional_help_for_mental_distressuses_datacoding_502_f20499_0_0[which(TT$ever_sought_or_received_professional_help_for_mental_distressuses_datacoding_502_f20499_0_0<0)]<-NA
+TT$ever_suffered_mental_distress_preventing_usual_activitiesuses_datacoding_502_f20500_0_0[which(TT$ever_suffered_mental_distress_preventing_usual_activitiesuses_datacoding_502_f20500_0_0<0)]<-NA
+
+# Recent feelings
+UKBvar$V4[which(UKBvar$V2=="Recent \n feelings")] 
+
+recent<-UKBvar$V4[which(UKBvar$V2=="Recent \n feelings" & !UKBvar$V4 %in% c("recentDepression"   , "recentAnxiety"  ))]
+for (iii in recent){
+  TT[which(TT[,iii]<0),iii]=NA
+}
+
+# Sum of recent feelings: Anx and Dep - recalculate
+TT$recentAnxiety<-rowSums(TT[,c("recent_easy_annoyance_or_irritabilityuses_datacoding_504_f20505_0_0", "recent_feelings_of_forebodinguses_datacoding_504_f20512_0_0","recent_inability_to_stop_or_control_worryinguses_datacoding_504_f20509_0_0",  "recent_feelings_or_nervousness_or_anxietyuses_datacoding_504_f20506_0_0", "recent_restlessnessuses_datacoding_504_f20516_0_0", "recent_trouble_relaxinguses_datacoding_504_f20515_0_0", "recent_worrying_too_much_about_different_thingsuses_datacoding_504_f20520_0_0")])
+TT$recentDepression<-rowSums(TT[,c("recent_changes_in_speedamount_of_moving_or_speakinguses_datacoding_504_f20518_0_0", "recent_feelings_of_depressionuses_datacoding_504_f20510_0_0", "recent_feelings_of_inadequacyuses_datacoding_504_f20507_0_0", "recent_feelings_of_tiredness_or_low_energyuses_datacoding_504_f20519_0_0", "recent_lack_of_interest_or_pleasure_in_doing_thingsuses_datacoding_504_f20514_0_0", "recent_poor_appetite_or_overeatinguses_datacoding_504_f20511_0_0", "recent_thoughts_of_suicide_or_selfharmuses_datacoding_504_f20513_0_0","recent_trouble_concentrating_on_thingsuses_datacoding_504_f20508_0_0", "trouble_falling_or_staying_asleep_or_sleeping_too_muchuses_datacoding_504_f20517_0_0" )])
+
+# Substance use
+UKBvar$V4[which(UKBvar$V2=="Substance \n use")] 
+
+TT$alcohol_intake_frequency_f1558_2_0[which(TT$alcohol_intake_frequency_f1558_2_0<0)]<-NA
+TT$smoking_status_f20116_2_0[which(TT$smoking_status_f20116_2_0==-3)]<-NA
+TT$past_tobacco_smoking_f1249_2_0[which(TT$past_tobacco_smoking_f1249_2_0 %in% c(-1,-3))]<-NA
+TT$current_tobacco_smoking_f1239_2_0[which(TT$current_tobacco_smoking_f1239_2_0 %in% c(-1,-3))]<-NA
+TT$exposure_to_tobacco_smoke_at_homeuses_datacoding_100291_f1269_2_0[which(TT$exposure_to_tobacco_smoke_at_homeuses_datacoding_100291_f1269_2_0<0)]<-NA
+TT$exposure_to_tobacco_smoke_outside_homeuses_datacoding_100291_f1279_2_0[which(TT$exposure_to_tobacco_smoke_outside_homeuses_datacoding_100291_f1279_2_0<0)]<-NA
+TT$number_of_cigarettes_previously_smoked_dailyuses_datacoding_100353_f2887_2_0[which(TT$number_of_cigarettes_previously_smoked_dailyuses_datacoding_100353_f2887_2_0==-10)]<-0
+TT$number_of_cigarettes_previously_smoked_dailyuses_datacoding_100353_f2887_2_0[which(TT$number_of_cigarettes_previously_smoked_dailyuses_datacoding_100353_f2887_2_0==-1)]<-NA
+TT$number_of_cigarettes_currently_smoked_daily_current_cigarette_smokersuses_datacoding_100355_f3456_2_0[which(TT$number_of_cigarettes_currently_smoked_daily_current_cigarette_smokersuses_datacoding_100355_f3456_2_0<0)]<-NA
+TT$ever_stopped_smoking_for_6_monthsuses_datacoding_100349_f2907_2_0[which(TT$ever_stopped_smoking_for_6_monthsuses_datacoding_100349_f2907_2_0<0)]<-NA
+
+# Addiction
+TT$ever_addicted_to_any_substance_or_behaviouruses_datacoding_502_f20401_0_0[which(TT$ever_addicted_to_any_substance_or_behaviouruses_datacoding_502_f20401_0_0<0)]<-NA
+TT$ever_addicted_to_alcoholuses_datacoding_502_f20406_0_0[which(TT$ever_addicted_to_alcoholuses_datacoding_502_f20406_0_0<0)]<-NA
+TT$ever_addicted_to_a_behaviour_or_miscellanoususes_datacoding_502_f20431_0_0[which(TT$ever_addicted_to_a_behaviour_or_miscellanoususes_datacoding_502_f20431_0_0<0)]<-NA
+TT$ever_addicted_to_illicit_or_recreational_drugsuses_datacoding_502_f20456_0_0[which(TT$ever_addicted_to_illicit_or_recreational_drugsuses_datacoding_502_f20456_0_0<0)]<-NA
+TT$ever_addicted_to_prescription_or_overthecounter_medicationuses_datacoding_502_f20503_0_0[which(TT$ever_addicted_to_prescription_or_overthecounter_medicationuses_datacoding_502_f20503_0_0<0)]<-NA
+TT$amount_of_alcohol_drunk_on_a_typical_drinking_dayuses_datacoding_522_f20403_0_0[which(TT$amount_of_alcohol_drunk_on_a_typical_drinking_dayuses_datacoding_522_f20403_0_0<0)]<-NA
+TT$ever_physically_dependent_on_alcoholuses_datacoding_502_f20404_0_0[which(TT$ever_physically_dependent_on_alcoholuses_datacoding_502_f20404_0_0<0)]<-NA
+TT$frequency_of_drinking_alcoholuses_datacoding_521_f20414_0_0[which(TT$frequency_of_drinking_alcoholuses_datacoding_521_f20414_0_0<0)]<-NA
+
+```
+
+## Stress / trauma
+
+```{R, message=FALSE, eval=F}
+
+UKBvar$V4[which(UKBvar$V2=="Trauma \n stress")] 
+
+# CHILDHODD
+TT$felt_hated_by_family_member_as_a_childuses_datacoding_532_f20487_0_0[which(TT$felt_hated_by_family_member_as_a_childuses_datacoding_532_f20487_0_0<0)]<-NA
+TT$physically_abused_by_family_as_a_childuses_datacoding_532_f20488_0_0[which(TT$physically_abused_by_family_as_a_childuses_datacoding_532_f20488_0_0<0)]<-NA
+TT$felt_loved_as_a_childuses_datacoding_532_f20489_0_0[which(TT$felt_loved_as_a_childuses_datacoding_532_f20489_0_0<0)]<-NA
+TT$sexually_molested_as_a_childuses_datacoding_532_f20490_0_0[which(TT$sexually_molested_as_a_childuses_datacoding_532_f20490_0_0<0)]<-NA
+
+# TRAUMA
+TT$belittlement_by_partner_or_expartner_as_an_adultuses_datacoding_532_f20521_0_0[which(TT$belittlement_by_partner_or_expartner_as_an_adultuses_datacoding_532_f20521_0_0<0)]<-NA
+TT$been_in_a_confiding_relationship_as_an_adultuses_datacoding_532_f20522_0_0[which(TT$been_in_a_confiding_relationship_as_an_adultuses_datacoding_532_f20522_0_0<0)]<-NA
+TT$physical_violence_by_partner_or_expartner_as_an_adultuses_datacoding_532_f20523_0_0[which(TT$physical_violence_by_partner_or_expartner_as_an_adultuses_datacoding_532_f20523_0_0<0)]<-NA
+TT$sexual_interference_by_partner_or_expartner_without_consent_as_an_adultuses_datacoding_532_f20524_0_0[which(TT$sexual_interference_by_partner_or_expartner_without_consent_as_an_adultuses_datacoding_532_f20524_0_0<0)]<-NA
+TT$able_to_pay_rentmortgage_as_an_adultuses_datacoding_532_f20525_0_0[which(TT$able_to_pay_rentmortgage_as_an_adultuses_datacoding_532_f20525_0_0<0)]<-NA
+TT$been_involved_in_combat_or_exposed_to_warzoneuses_datacoding_533_f20527_0_0[which(TT$been_involved_in_combat_or_exposed_to_warzoneuses_datacoding_533_f20527_0_0<0)]<-NA
+TT$victim_of_sexual_assaultuses_datacoding_533_f20531_0_0[which(TT$victim_of_sexual_assaultuses_datacoding_533_f20531_0_0<0)]<-NA
+TT$victim_of_sexual_assaultuses_datacoding_533_f20531_0_0[which(TT$victim_of_sexual_assaultuses_datacoding_533_f20531_0_0==2)]<-1
+TT$victim_of_physically_violent_crimeuses_datacoding_533_f20529_0_0[which(TT$victim_of_physically_violent_crimeuses_datacoding_533_f20529_0_0<0)]<-NA
+TT$victim_of_physically_violent_crimeuses_datacoding_533_f20529_0_0[which(TT$victim_of_physically_violent_crimeuses_datacoding_533_f20529_0_0==2)]<-1
+TT$witnessed_sudden_violent_deathuses_datacoding_533_f20530_0_0[which(TT$witnessed_sudden_violent_deathuses_datacoding_533_f20530_0_0<0)]<-NA
+
+```
+
+## Some more info - phase and site
+
+```{R, message=FALSE, eval=F}
+
+TT$acquisition_protocol_phaseuses_datacoding_778_f25780_2_0[which(is.na(TT$acquisition_protocol_phaseuses_datacoding_778_f25780_2_0))]=5
+table(TT$acquisition_protocol_phaseuses_datacoding_778_f25780_2_0)
+
+table(TT$uk_biobank_assessment_centre_f54_2_0, TT$DiscoverySample)
+table(TT$uk_biobank_assessment_centre_f54_2_0, TT$ReplicationSample)
+
+```
+
+# Regress out covariates and calculate fixed effects R2
+
+The phenotypes regressed out for covariates are written in several folders  
+The main folders for the analysis are **UKB_phenotypes_reg_Bsln** (baseline covariates) and **UKB_phenotypes_reg_Bsln_bdsz** (baseline covariate + body size)  
+Each phenotype is written in an individual tab separated file with 3 columns (no column names) **eid eid phenotype**  
+This way we can easily loop on phenotypes in the models by selecting the relevant file  
+
+```{R, message=FALSE, eval=F}
+
+res=as.data.frame(matrix(NA, ncol=8, nrow = length(UKBvar$V4)) )
+colnames(res)=c("Variable", "r0", "rage", "rsex", "rbrain", "rbody","rheight", "rWBMI")
+res$Variable=UKBvar$V4
+
+# Regress age sex, brain size
+for (var in  UKBvar$V4){
+
+  m0=lm(as.formula(paste0( var, " ~  factor(acquisition_protocol_phaseuses_datacoding_778_f25780_2_0)  " ) ), data = TT, na.action = na.exclude)
+  s0=summary(m0)
+  m1=lm(as.formula(paste0( var, " ~  factor(acquisition_protocol_phaseuses_datacoding_778_f25780_2_0) + Age_MRI " ) ), data = TT, na.action = na.exclude)
+  s1=summary(m1)
+  m2=lm(as.formula(paste0( var, " ~  factor(acquisition_protocol_phaseuses_datacoding_778_f25780_2_0) + Age_MRI + sexuses_datacoding_9_f31_0_0 " ) ), data = TT, na.action = na.exclude)
+  s2=summary(m2)
+  m3=lm(as.formula(paste0( var, " ~  factor(acquisition_protocol_phaseuses_datacoding_778_f25780_2_0) + Age_MRI +  sexuses_datacoding_9_f31_0_0 + ICV + LThickness + RThickness + LSurfArea + RSurfArea " ) ), data = TT, na.action = na.exclude)
+  s3=summary(m3)
+   m4=lm(as.formula(paste0( var, " ~  factor(acquisition_protocol_phaseuses_datacoding_778_f25780_2_0) + Age_MRI + sexuses_datacoding_9_f31_0_0 + ICV  + LThickness + RThickness + LSurfArea + RSurfArea + standing_height_f50_2_0 " ) ), data = TT, na.action = na.exclude)
+  s4=summary(m4)
+  m5=lm(as.formula(paste0( var, " ~  factor(acquisition_protocol_phaseuses_datacoding_778_f25780_2_0) + Age_MRI + sexuses_datacoding_9_f31_0_0 + ICV  + LThickness + RThickness + LSurfArea + RSurfArea + standing_height_f50_2_0 + weight_f21002_2_0 + body_mass_index_bmi_f21001_2_0 " ) ), data = TT, na.action = na.exclude)
+  s5=summary(m5)
+  
+  # Store residuals of regression
+  TT[,paste0(var, "_reg")]=scale(residuals(m2)) 
+  TT[,paste0(var, "_regB")]=scale(residuals(m3))  
+  TT[,paste0(var, "_regBH")]=scale(residuals(m4))    
+  TT[,paste0(var, "_regBB")]=scale(residuals(m5))  
+    write.table(TT[which(!is.na(TT[,paste0(var)]) ),c("eid", "eid", paste0(var))], paste0("UKB_phenotypes/", var, "_reg", ".txt"), sep="\t", row.names=F, col.names=F , quote=F)
+  write.table(TT[which(!is.na(TT[,paste0(var, "_reg")]) ),c("eid", "eid", paste0(var, "_reg"))], paste0("UKB_phenotypes_reg/", var, "_reg", ".txt"), sep="\t", row.names=F, col.names=F , quote=F)
+  write.table(TT[which(!is.na(TT[,paste0(var, "_regB")])),c("eid", "eid", paste0(var, "_regB"))], paste0("UKB_phenotypes_reg_Bsln/", var, "_reg", ".txt"), sep="\t", row.names=F, col.names=F , quote=F)
+    write.table(TT[which(!is.na(TT[,paste0(var, "_regBH")])),c("eid", "eid", paste0(var, "_regBH"))], paste0("UKB_phenotypes_reg_Bsln_hgt/", var, "_reg", ".txt"), sep="\t", row.names=F, col.names=F , quote=F)
+  write.table(TT[which(!is.na(TT[,paste0(var, "_regBB")])),c("eid", "eid", paste0(var, "_regBB"))], paste0("UKB_phenotypes_reg_Bsln_bdsz/", var, "_reg", ".txt"), sep="\t", row.names=F, col.names=F , quote=F)
+
+  res[which(res$Variable==var),c( "r0", "rage", "rsex", "rbrain", "rbody", "rheight", "rWBMI")]=c(s0$r.squared, s1$r.squared-s0$r.squared, s2$r.squared-s1$r.squared, s3$r.squared-s2$r.squared, s5$r.squared-s3$r.squared, s4$r.squared-s3$r.squared, s5$r.squared-s4$r.squared)  
+
+} 
+
+# Write fixed effect R2
+write.csv(res, "FixedEffects_UKB_15K_Jan2019Update.csv")
+
+#######################
+#Write formatted data
+write_csv(TT, "UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv")
+
+```
+
+
+
+<br><br>

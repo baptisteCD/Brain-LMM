@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>A unified framework for association and prediction from vertex-wise grey-matter structure</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Brain-LMM</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="RR_1_PreparePhenotypes.html">1 Prepare phenotypes</a>
+</li>
+<li>
+  <a href="RR_2_Unzip_ProcessMRI_UKBiobank.html">2 Process MRI</a>
+</li>
+<li>
+  <a href="RR_3_CreateTables_ImagingDerivedPhenotypes_vertexData.html">3 Create vertex tables</a>
+</li>
+<li>
+  <a href="RR_4_CreateBinaryVertexFiles_forOSCA.html">4 Create binary files</a>
+</li>
+<li>
+  <a href="RR_5_Morphometricity_OSCA_andPlots.html">5 Morphometricity</a>
+</li>
+<li>
+  <a href="RR_6_Morphometricity_OSCA_byRegionOfInterest_andPlots.html">6 Morphometricity by ROI</a>
+</li>
+<li>
+  <a href="RR_7_BivariateAnalysis_rGM_andPlots.html">7 Grey-matter correlation</a>
+</li>
+<li>
+  <a href="RR_8_BLUP_prediction_CrossValidation_UKBreplicationSample.html">8 BLUP prediction</a>
+</li>
+<li>
+  <a href="RR_9_PenalisedRegression_Prediction.html">9 LASSO prediction</a>
+</li>
+<li>
+  <a href="RR_10_CreateTables_varyingSmoothing_MeshSize_corticalVertexData.html">10 Other cortical processing</a>
+</li>
+<li>
+  <a href="RR_11_Morphometricity_varyingSmoothing_MeshSize_corticalVertexData.html">11 Morphometricity by processing</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">A unified framework for association and prediction from vertex-wise grey-matter structure</h1>
+
+</div>
+
+
+<p><br />
+<br />
+<br />
+<br />
+<em>Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher</em></p>
+<p>The code is presented in a serie of Rmarkdown files with corresponding html knitted files. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.<br />
+<br />
+</p>
+<div id="dependencies" class="section level2">
+<h2>Dependencies</h2>
+<p><strong>qsubshcom</strong><br />
+Sections of the code in <strong>bash</strong> may be run directly on a high performance cluster thanks to the <strong>qsubshcom</strong> piece of software. (<a href="https://github.com/zhilizheng/qsubshcom" class="uri">https://github.com/zhilizheng/qsubshcom</a>)<br />
+In short, <strong>qsubshcom</strong> is a job submission wrapper that adapts automatically to the cluster system, which makes our code highly portable: you only need to change the paths to working directory or your own files.</p>
+<p>Steps that do not require much time/memory were usually run in an interactive session (they come without the <strong>qsubshcom</strong> syntax)</p>
+<p><strong>FreeSurfer 6.0</strong><br />
+Image processing requires FreeSurfer 6.0 (<a href="https://surfer.nmr.mgh.harvard.edu/" class="uri">https://surfer.nmr.mgh.harvard.edu/</a>).</p>
+<p><strong>ENIGMA-shape</strong><br />
+Subcortical processing further requires the scripts developped by Boris Gutman for the ENIGMA consortium (<a href="http://enigma.ini.usc.edu/protocols/imaging-protocols/" class="uri">http://enigma.ini.usc.edu/protocols/imaging-protocols/</a>).</p>
+<p><strong>OSCA</strong><br />
+Most of the analyses were performed using the <strong>OSCA</strong> software (<a href="https://cnsgenomics.com/software/osca/#Overview" class="uri">https://cnsgenomics.com/software/osca/#Overview</a>).</p>
+<p><strong>GCTA</strong><br />
+For bivariate models, the option is yet to be implemented in OSCA so we detail the trick we use to run those models in GCTA (<a href="https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis" class="uri">https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis</a>).</p>
+<p><strong>R</strong><br />
+Plots, some data management and penalised regression were performed using R3.3 to 3.6. See manuscript (or code) for full list of packages used.</p>
+</div>
+<div id="atlas-files" class="section level2">
+<h2>Atlas files</h2>
+<p>We created a bunch of useful files to facilitate the analysis, for example to prune out vertices outside of the cortex, to relate each vertex to a cortical/subcortical region… They are available in the <strong>atlas</strong> folder of this repository</p>
+</div>
+<div id="general-organisation-of-the-working-directory-wd" class="section level2">
+<h2>General organisation of the working directory ${wd}</h2>
+<pre><code>    /FS </code></pre>
+<p>Contains all outputs from MRI image processing, in particular:</p>
+<pre><code>    /FS                             
+        /batch${batch}              
+            /${ID}
+                /mri
+                /surf
+                /ENIGMA_shape
+                /...</code></pre>
+<p>Output of FreeSurfer (standard) and ENIGMA-shape processing</p>
+<pre><code>    /FS         
+        ENIGMAshapeResults          
+            /batch${batch}
+                /${ID}</code></pre>
+<p>Reorganised copy of the ENIGMA_shape folders, to facilitate data extraction using ENIGMA-shape function</p>
+<pre><code>    /FS
+        FSresults
+            /batch${batch}
+                /${ID}                  </code></pre>
+<p>Selected output FreeSurfer files (folders <em>stats</em> and part of the <em>surf</em>) which are necessary for the downstream analyses. Having all useful files in <em>ENIGMAshapeResults</em> and <em>FSresults</em> allows deleting all other FreeSurfer files to reduce memory and file usage on the cluster.</p>
+<pre><code>    /BodFiles                       </code></pre>
+<p>Binary files for OSCA analysis, incl. vertex files and brain relatedness matrices</p>
+<pre><code>    /Phenotypes_15K
+        /UKB_phenotypes
+        /UKB_phenotypes_reg_Bsln
+        /UKB_phenotypes_reg_Bsln_bdsz</code></pre>
+<p>Phenotype files to facilitate loops on variables included in the analyses<br />
+File format (tsv or space delimited): eid eid pheno, no column names<br />
+The different folders correspond to different covariates that have been regressed out (Bsln=baseline model/covariates, Bsln_bdsz= baseline + body size covariates)</p>
+<pre><code>    /Phenotypes_15K
+        /UKB_phenotypes_bivariate_reg_Bsln
+        /UKB_phenotypes_bivariate_reg_Bsln_bdsz</code></pre>
+<p>Each file contains a pair of phenotypes for bivariate models (eid eid pheno1 pheno2)</p>
+<pre><code>    /BREML_all_QC_reg_Bsln
+    /BREML_all_QC_reg_Bsln_bdsz</code></pre>
+<p>Results of morphometricity analyses (<em>fsaverage no smoothing</em>) with different sets of covariates</p>
+<pre><code>    /BREML_ROI_Bsln
+        /lingual
+        /Hippocampus
+        /...
+    /BREML_ROI_Bsln_bdsz
+        /lingual
+        /Hippocampus
+        /...</code></pre>
+<p>Results of morphometricity analyses by Regions of Interest (ROIs).</p>
+<pre><code>    /BREML_bivariate_reg_Bsln_bdsz
+    /BREML_bivariate_reg_Bsln</code></pre>
+<p>Results of grey-matter correlations (bivariate models)</p>
+<pre><code>    /BLUP_Bsln
+    /BLUP_Bsln_bdsz</code></pre>
+<p>Files from BLUP calculation on discovery sample, incl. individual weights, blup weights and BLUP scores from cross-validation design.</p>
+<pre><code>    /LassoRidgePred</code></pre>
+<p>Outputs from Lasso prediction using <em>R</em> package <em>bigstatsr</em></p>
+<pre><code>    /BREML_Bsln_fwhm${fwhm}
+    /BREML_Bsln_${fsav}</code></pre>
+<p>Results of morphometricity analyses varying smoothing of the <em>fsaverage</em> cortical meshes (fwhm in 5 10 15 20 25) and the mesh complexity (fsav in fsaverage3 fsaverage4 fsaverage5 fsaverage6)<br />
+Baseline covariates</p>
+</div>
+<div id="aliases-used-in-the-scripts" class="section level2">
+<h2>Aliases used in the scripts</h2>
+<p>${od} <em>Output directory</em></p>
+<p>${fsdir} <em>FreeSurfer directory</em></p>
+<pre><code>    /bin
+    /data
+    /subjects
+    /...</code></pre>
+<p>${bind} <em>Binaries directory</em></p>
+<pre><code>    /osca
+    /gcta
+    /qsubshcom
+    /ENIGMA_shape
+        /MedialDemonsShared
+        /...
+    </code></pre>
+<p>${medici} <em>Storage directory where MRI images are stored/downloaded</em></p>
+<pre><code>    /T1
+        /raw
+            /batch${batch}
+                /T1_fetch_batch${batch}.lis
+                /...    
+        /unzip
+            /batch${batch}
+    
+    /T2
+        /raw
+            /batch${batch}
+                /T2_fetch_batch${batch}.lis
+                /...
+        /unzip
+            /batch${batch}      
+        </code></pre>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

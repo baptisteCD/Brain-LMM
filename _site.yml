@@ -17,7 +17,7 @@ navbar:
       href: RR_5_Morphometricity_OSCA_andPlots.html
     - text: "6 Morphometricity by ROI"
       href: RR_6_Morphometricity_OSCA_byRegionOfInterest_andPlots.html
-    - text: "7 Grey-matter correlation"
+    - text: "7 Grey-matter correlations"
       href: RR_7_BivariateAnalysis_rGM_andPlots.html
     - text: "8 BLUP prediction"
       href: RR_8_BLUP_prediction_CrossValidation_UKBreplicationSample.html
@@ -25,5 +25,5 @@ navbar:
       href: RR_9_PenalisedRegression_Prediction.html
     - text: "10 Other cortical processing"
       href: RR_10_CreateTables_varyingSmoothing_MeshSize_corticalVertexData.html
-    - text: "11 Morphometricity by processing"
+    - text: "11 Morphometricity with other processing"
       href: RR_11_Morphometricity_varyingSmoothing_MeshSize_corticalVertexData.html

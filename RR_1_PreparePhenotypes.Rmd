@@ -1,5 +1,5 @@
 ---
-title: "UKB phenotypic data formatting"
+title: "UKB phenotype data formatting"
 author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
 output:
   epuRate::PCTG:

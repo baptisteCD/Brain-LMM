@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>Processing T1w + T2 FLAIR UKBiobank MRI images</title>
@@ -3063,16 +3063,18 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Processing T1w + T2 FLAIR UKBiobank MRI images</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
 
+<blockquote>
+<p>We dowloaded the UKBiobank MRI images by batches of 500 (maximum number of download using <strong>ukbfetch</strong>).<br />
+Each batch is numbered and stored in a separate folder called <em>batchXX</em>. Processing by batch reduces the pressure on the cluster and speeds up the data creation.</p>
+</blockquote>
 <div id="unzip-mri-images-downloaded-using-the-ukb-tools" class="section level1">
 <h1><span class="header-section-number">1</span> Unzip MRI images downloaded using the UKB tools</h1>
-<p>Note that we dowloaded the MRI images by batches of 500 (maximum number of download using <strong>ukbfetch</strong>)<br />
-Each batch is numbered and stored in a separate folder called <em>batchXX</em><br />
-The .lis files were created by <strong>ukbfetch</strong> at the end of each dowload</p>
+<p>The .lis files were created by <strong>ukbfetch</strong> at the end of each dowload. They contain a single column with the list of MRI images downloaded.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..5}</span></a>
 <a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">do</span></a>
@@ -3097,11 +3099,15 @@ The .lis files were created by <strong>ukbfetch</strong> at the end of each dowl
 </div>
 <div id="processing-of-t1-and-t2-images" class="section level1">
 <h1><span class="header-section-number">2</span> Processing of T1 and T2 images</h1>
-<p>FreeSurfer 6.0 recon-all processing<br />
-T1w and T2 FLAIR are processed together if both are available<br />
-Otherwise T1w are processed by themselves</p>
-<p><em>.mgh</em> surface files are then converted into <em>.asc</em> readable text files</p>
-<p>ENIGMA-shape processing is performed to extract subcortical structure</p>
+<ul>
+<li><p>FreeSurfer 6.0 recon-all processing<br />
+T1w and T2 FLAIR are processed together if both are available, otherwise T1w are processed by themselves.</p></li>
+<li><p><em>.mgh</em> surface files are then converted into <em>.asc</em> readable text files</p></li>
+<li><p>ENIGMA-shape processing is performed to extract subcortical structure</p></li>
+<li><p>Save all useful files in the <em>ENIGMAshapeResults</em> and <em>FSresults</em> folders</p></li>
+</ul>
+<p>If space or number of files is a limitation, you can delete all intermediate FreeSurfer files at the end of the processing by adding the extra command: ‘rm -r “<span class="math inline">${wd}&quot;/FS/batch&quot;$</span>{batch}”/${ID}’<br />
+This leaves you with the contents of FS/ENIGMAshapeResults and FS/FSresults only, which contain everything you need for the analyses.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..5}</span></a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">do</span></a>
@@ -3113,7 +3119,7 @@ Otherwise T1w are processed by themselves</p>
 <a class="sourceLine" id="cb2-9" data-line-number="9"><span class="st">mkdir -p &quot;</span><span class="va">${wd}</span><span class="st">&quot;/FS/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot; |;</span></a>
 <a class="sourceLine" id="cb2-10" data-line-number="10"><span class="st">mkdir -p &quot;</span><span class="va">${wd}</span><span class="st">&quot;/FS/FSresults/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/ |;</span></a>
 <a class="sourceLine" id="cb2-11" data-line-number="11"><span class="st">mkdir -p &quot;</span><span class="va">${wd}</span><span class="st">&quot;/FS/ENIGMAshapeResults/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/ |;</span></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="st">SUBJECTS_DIR=</span><span class="dt">\&quot;</span><span class="st">/gpfs1/scratch/group30days/cnsg_park/uqbcouvy/UKB_MRI_may18/FS/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\&quot;</span><span class="st"> |;</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="st">SUBJECTS_DIR=</span><span class="dt">\&quot;</span><span class="st">/working/directory/FS/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\&quot;</span><span class="st"> |;</span></a>
 <a class="sourceLine" id="cb2-13" data-line-number="13"><span class="st">if [ -e &quot;</span><span class="va">${wd}</span><span class="st">&quot;/T2/unzip/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/T2_FLAIR/T2_FLAIR_unbiased_brain.nii.gz ] |;</span></a>
 <a class="sourceLine" id="cb2-14" data-line-number="14"><span class="st">then |;</span></a>
 <a class="sourceLine" id="cb2-15" data-line-number="15"><span class="st">&quot;</span><span class="va">${fsdir}</span><span class="st">&quot;/bin/recon-all -subject </span><span class="dt">\$</span><span class="st">{ID} -i &quot;</span><span class="va">${wd}</span><span class="st">&quot;/T1/unzip/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/T1/T1_orig_defaced.nii.gz -T2 &quot;</span><span class="va">${wd}</span><span class="st">&quot;/T2/unzip/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/T2_FLAIR/T2_FLAIR_orig_defaced.nii.gz -T2pial -all -qcache  |;</span></a>
@@ -3129,17 +3135,12 @@ Otherwise T1w are processed by themselves</p>
 <a class="sourceLine" id="cb2-25" data-line-number="25"><span class="st">rsync -r &quot;</span><span class="va">${wd}</span><span class="st">&quot;/FS/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/stats/* &quot;</span><span class="va">${wd}</span><span class="st">&quot;/FS/FSresults/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/ |;</span></a>
 <a class="sourceLine" id="cb2-26" data-line-number="26"><span class="st">rsync -r &quot;</span><span class="va">${wd}</span><span class="st">&quot;/FS/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/surf/*.mgh &quot;</span><span class="va">${wd}</span><span class="st">&quot;/FS/FSresults/batch&quot;</span><span class="va">${batch}</span><span class="st">&quot;/</span><span class="dt">\$</span><span class="st">{ID}/ |;</span></a>
 <a class="sourceLine" id="cb2-27" data-line-number="27"><span class="st">&quot;</span> 1 4G MRI_processing_batch<span class="va">${batch}</span> 48:00:00 <span class="st">&quot;-array=1-500 -acct=UQ-IMB-CNSG&quot;</span> </a>
-<a class="sourceLine" id="cb2-28" data-line-number="28"><span class="kw">done</span></a>
-<a class="sourceLine" id="cb2-29" data-line-number="29"></a>
-<a class="sourceLine" id="cb2-30" data-line-number="30"><span class="co"># If space or number of files is a limitation, you can delete all FreeSurfer files at the end of the processing by adding the extra command: </span></a>
-<a class="sourceLine" id="cb2-31" data-line-number="31"><span class="fu">rm</span> -r <span class="st">&quot;</span><span class="va">${wd}</span><span class="st">&quot;</span>/FS/batch<span class="st">&quot;</span><span class="va">${batch}</span><span class="st">&quot;</span>/<span class="dt">\${ID}</span></a>
-<a class="sourceLine" id="cb2-32" data-line-number="32"></a>
-<a class="sourceLine" id="cb2-33" data-line-number="33"><span class="co"># This leaves you with the contents of FS/ENIGMAshapeResults and FS/FSresults only, which contain everything you need for the analyses.</span></a></code></pre></div>
+<a class="sourceLine" id="cb2-28" data-line-number="28"><span class="kw">done</span></a></code></pre></div>
 </div>
 <div id="check-completion-of-image-processing" class="section level1">
 <h1><span class="header-section-number">3</span> Check completion of image processing</h1>
-<p>Creates files <em>IDs_rerun_batch$batch.txt</em> that contain IDs of participants for which processing did not complete<br />
-You may want to re-run processing for those individuals or use this script to check nothing happened to the job</p>
+<p>Creates files <em>IDs_rerun_batch$batch.txt</em> that contain IDs of participants for which processing did not complete.<br />
+You may want to re-run processing for those individuals or investigate.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..5}</span></a>
 <a class="sourceLine" id="cb3-3" data-line-number="3"><span class="kw">do</span> </a>
@@ -3168,7 +3169,7 @@ You may want to re-run processing for those individuals or use this script to ch
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

@@ -7,20 +7,21 @@ output:
     code_folding: "show"
 ---
 
-# Open data and subset into discovery and replication
+# Open phenotype data
+
+I use read.csv here, which is a slower than *readr::read_csv()*. This is because I found that using *read_csv* opens the table as a *data frame* (not a *data table*) which does not allow to call TT[,columnName]
 
 ```{R, message=FALSE, eval=F}
 
 TT=read.csv("UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv")
-# Note, I use read.csv here, which is a bit slow. Though, I found that using read_csv makes a df and does not allow to call TT[,columnName]
 
 ```
 
 # Write all pairwise phenotypes 
 
-The aim of this code section is to write bivariate phenotype files that have the form **eid eid pheno1 pheno2** which will be read in OSCA to perform bivariate analyses  
+The aim of this code section is to write bivariate phenotype files that have the form **eid eid pheno1 pheno2** which will be read in OSCA to perform bivariate analyses.  
 
-We restrict ourselves to phenotypes with significant morphometricity  
+We restrict ourselves to phenotypes with significant morphometricity.  
 
 ```{R, message=FALSE, eval=F}
 
@@ -60,7 +61,7 @@ write.table(bivarList, "UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt", col.names 
 # Run bivariate models in GCTA
 
 **As bivariate analysis is not yet implemented in OSCA, we use GCTA. The trick is to rename the BRMs so GCTA sees them as GRM (genetic relatedness matrices).**  
-GCTA also allows for multi-tread for faster computation (here 5 cpus per job)
+GCTA also allows for multi-tread for faster computation (here 5 cpus per job).
 
 ```{bash, message=FALSE, eval=F}
 
@@ -72,7 +73,7 @@ cp allVerticesBRM_QC.orm.id allVerticesBRM_QC.grm.id
 cp allVerticesBRM_QC.orm.N.bin allVerticesBRM_QC.grm.N.bin
 
 cd ${od}
-${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt) |;  "${bind}"/gcta64 --reml-bivar 1 2 --grm-bin "${wd}"/BodFiles/allVerticesBRM_QC --pheno  "${wd}"/Phenotypes15K_Jan2019Update/UKB_phenotypes_bivariate_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).txt --out  "${od}"/BivModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).outliers.UKB --reml-maxit 10000 --reml-bivar-lrt-rg 0 --thread-num 5 " 5 20G GREML_all 48:00:00 "-array=1-1378 -acct=UQ-IMB-CNSG" 
+${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt) |;  "${bind}"/gcta64 --reml-bivar 1 2 --grm-bin "${wd}"/BodFiles/allVerticesBRM_QC --pheno  "${wd}"/Phenotypes15K/UKB_phenotypes_bivariate_reg_Bsln_bdsz/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).txt --out  "${od}"/BivModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).outliers.UKB --reml-maxit 10000 --reml-bivar-lrt-rg 0 --thread-num 5 " 5 20G GREML_all 48:00:00 "-array=1-1378 -acct=UQ-IMB-CNSG" 
 
 ```
 
@@ -153,7 +154,7 @@ write.table(rPSE, "rP_SE_correlation_matrix_outliers_Bsln_bdsz.txt", col.names=T
 
 # Calculate residual correlations
 
-findVCOVmatFromGCTAOutput() is a R function that extract the matrix of variance covariace of model estimates from *qsubshcom* log files  
+*findVCOVmatFromGCTAOutput()* is a R function that extract the matrix of variance covariace of model estimates from *qsubshcom* log files.  
 
 ```{r, message=FALSE, eval=F}
 

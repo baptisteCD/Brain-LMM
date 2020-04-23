@@ -7,12 +7,12 @@ output:
     code_folding: "show"
 ---
 
+>We dowloaded the UKBiobank MRI images by batches of 500 (maximum number of download using **ukbfetch**).  
+Each batch is numbered and stored in a separate folder called *batchXX*. Processing by batch reduces the pressure on the cluster and speeds up the data creation.    
+
 # Unzip MRI images downloaded using the UKB tools
 
-Note that we dowloaded the MRI images by batches of 500 (maximum number of download using **ukbfetch**)  
-Each batch is numbered and stored in a separate folder called *batchXX*  
-The .lis files were created by **ukbfetch** at the end of each dowload  
-
+The .lis files were created by **ukbfetch** at the end of each dowload. They contain a single column with the list of MRI images downloaded.    
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -41,13 +41,18 @@ done
 
 # Processing of T1 and T2 images
 
-FreeSurfer 6.0 recon-all processing  
-T1w and T2 FLAIR are processed together if both are available  
-Otherwise T1w are processed by themselves  
+- FreeSurfer 6.0 recon-all processing  
+T1w and T2 FLAIR are processed together if both are available, otherwise T1w are processed by themselves.   
   
-*.mgh* surface files are then converted into *.asc* readable text files  
+- *.mgh* surface files are then converted into *.asc* readable text files  
   
-ENIGMA-shape processing is performed to extract subcortical structure  
+- ENIGMA-shape processing is performed to extract subcortical structure  
+
+- Save all useful files in the *ENIGMAshapeResults* and *FSresults* folders  
+
+If space or number of files is a limitation, you can delete all intermediate FreeSurfer files at the end of the processing by adding the extra command: 
+'rm -r "${wd}"/FS/batch"${batch}"/\${ID}'  
+This leaves you with the contents of FS/ENIGMAshapeResults and FS/FSresults only, which contain everything you need for the analyses.
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -61,7 +66,7 @@ echo \${ID} |;
 mkdir -p "${wd}"/FS/batch"${batch}" |;
 mkdir -p "${wd}"/FS/FSresults/batch"${batch}"/\${ID}/ |;
 mkdir -p "${wd}"/FS/ENIGMAshapeResults/batch"${batch}"/\${ID}/ |;
-SUBJECTS_DIR=\"/gpfs1/scratch/group30days/cnsg_park/uqbcouvy/UKB_MRI_may18/FS/batch"${batch}"/\" |;
+SUBJECTS_DIR=\"/working/directory/FS/batch"${batch}"/\" |;
 if [ -e "${wd}"/T2/unzip/batch"${batch}"/\${ID}/T2_FLAIR/T2_FLAIR_unbiased_brain.nii.gz ] |;
 then |;
 "${fsdir}"/bin/recon-all -subject \${ID} -i "${wd}"/T1/unzip/batch"${batch}"/\${ID}/T1/T1_orig_defaced.nii.gz -T2 "${wd}"/T2/unzip/batch"${batch}"/\${ID}/T2_FLAIR/T2_FLAIR_orig_defaced.nii.gz -T2pial -all -qcache  |;
@@ -79,18 +84,12 @@ rsync -r "${wd}"/FS/batch"${batch}"/\${ID}/surf/*.mgh "${wd}"/FS/FSresults/batch
 " 1 4G MRI_processing_batch${batch} 48:00:00 "-array=1-500 -acct=UQ-IMB-CNSG" 
 done
 
-# If space or number of files is a limitation, you can delete all FreeSurfer files at the end of the processing by adding the extra command: 
-rm -r "${wd}"/FS/batch"${batch}"/\${ID}
-
-# This leaves you with the contents of FS/ENIGMAshapeResults and FS/FSresults only, which contain everything you need for the analyses.
-
 ```
 
 # Check completion of image processing  
 
-Creates files *IDs_rerun_batch$batch.txt* that contain IDs of participants for which processing did not complete  
-You may want to re-run processing for those individuals or use this script to check nothing happened to the job  
-
+Creates files *IDs_rerun_batch$batch.txt* that contain IDs of participants for which processing did not complete.    
+You may want to re-run processing for those individuals or investigate.    
 
 ```{bash, message=FALSE, eval=FALSE}
 

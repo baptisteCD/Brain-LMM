@@ -9,12 +9,11 @@ output:
 
 # Extract ROI values from FreeSurfer parcellation 
 
-Such tables are not the main ones used in the analyses but they contain ICV and other useful measurements  
-They correspond to the ENIGMA - average values used by the ENIGMA consortium (LandRVolumes and ThickAvg / SurfAvg files)  
+Such tables are not the main ones used in the analyses but they contain ICV and other useful measurements.  
+They correspond to the ENIGMA - average values used by the ENIGMA consortium (*LandRVolumes* and *ThickAvg / SurfAvg* files)  
 
 NOTE: this code is identical to that of the ENIGMA processing protocols  
-<http://enigma.ini.usc.edu/protocols/imaging-protocols/>  
-
+<http://enigma.ini.usc.edu/protocols/imaging-protocols/>.  
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -124,8 +123,9 @@ done
 
 # Extract cortical vertex-wise data
 
-Here, I got a bit lazy and did not write the piece of code to initialise automatically the vertexnames  
-Instead I initialise using one individual (batch1/1002XXX) for which I checked processing went well  
+> Main imaging-derived phenotype tables for the analyses
+
+Here, I got a bit lazy and did not write the piece of code to initialise automatically the vertexnames. Instead I initialise using one individual (batch1/1002XXX) for which I checked processing went well.    
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -158,7 +158,7 @@ done
 
 # Extract subcortical vertex-wise data
 
-Code provided by Boris Gutman in the ENIGMA-shape package  
+Code provided by Boris Gutman as part of the *ENIGMA-shape* package  
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -224,7 +224,7 @@ done
 
 ## Cortical data
 
-Note that we add the prefixes rht, lht, rha and lha to cortical vertices numbers in order to avoid duplicates when we will put all vertices togeter  
+> First we add the prefixes rht, lht, rha and lha to cortical vertices numbers in order to avoid duplicates when we will put all vertices togeter.  
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -259,7 +259,8 @@ cat ${wd}/FS/lh.area.fwhm0.UKB.txt | wc -l
 
 # Subcortical data
 
-We kept the vertex names used in the ENIGMA-shape package, which are all unique  
+> We kept the vertex names used in the ENIGMA-shape package, which are all unique  
+
 ```{bash, message=FALSE, eval=FALSE}
 
 # Initialise

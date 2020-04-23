@@ -9,14 +9,9 @@ output:
 
 # Apply smoothing and coarses mesh
 
-This can be integrated in the MRI images processing script (RR_2), it relies on FreeSurfer scripts and files created as part of the FreeSurfer processing (*FSresults* folder) 
+>This can be integrated in the MRI images processing script (RR_2), it relies on FreeSurfer scripts and files created as part of the FreeSurfer processing (*FSresults* folder) 
 
 ```{bash, message=FALSE, eval=FALSE}
-
-wd="/working/directory"
-medici="/storage/where/UKB/images/were/downloaded"
-fsdir="/freesurfer/directory"
-bind="binaries/directory"
 
 for batch in {1..5}
 do
@@ -47,18 +42,14 @@ done
 
 ```
 
-# Create the different tables of vertex-wise data
+# Create the tables of vertex-wise data
 
-Similar to code in RR_2, except that we initialise the vertex names using file the first individual of each batch. I have included a check that processing completed for this subject, if not the job fails immediately and you will have to provide manually an ID  
+> Similar to code in RR_2, except that we initialise the vertex names using file the first individual of each batch. I have included a check that processing completed for this subject, if not the job fails immediately and you will have to provide manually an ID.  
 This is better than the previous version (RR_2 that required a manual input) but still not ideal  
 
 ## Different levels of smoothing
 
 ```{bash, message=FALSE, eval=FALSE}
-
-wd="/working/directory"
-bind="binaries/directory"
-cd ${wd}
 
 for batch in {1..5}
 do
@@ -165,7 +156,7 @@ done
 
 ## Different smoothing
 
-Parallelised by submitting a job per smoothing value  
+Parallelised by submitting a job per smoothing value.  
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -194,13 +185,12 @@ done
 
 ## Different meshes
 
-Not parallelised in this example, as it runs a lot faster (smaller number of vertices)  
+Not parallelised in this example, as it runs a lot faster (due to a smaller number of vertices).  
 
 ```{bash, message=FALSE, eval=FALSE}
 
 for fsav in fsaverage3 fsaverage4 fsaverage5 fsaverage6
 do
-
 awk 'BEGIN{OFS="\t"}$1="rht_"$1' ${wd}/FS/rh.thickness.batch1.fwhm0.${fsav}.UKB.txt > ${wd}/FS/rh.thickness.fwhm0.${fsav}.UKB.txt
 awk 'BEGIN{OFS="\t"}$1="lht_"$1' ${wd}/FS/lh.thickness.batch1.fwhm0.${fsav}.UKB.txt > ${wd}/FS/lh.thickness.fwhm0.${fsav}.UKB.txt
 awk 'BEGIN{OFS="\t"}$1="rha_"$1' ${wd}/FS/rh.area.batch1.fwhm0.${fsav}.UKB.txt > ${wd}/FS/rh.area.fwhm0.${fsav}.UKB.txt
@@ -252,10 +242,10 @@ done |; " 5 20G Files_intoBod 10:00:00 "-acct=UQ-IMB-CNSG"
 
 # Exclude vertices based on variance
 
-This is a more data driven approach to excluding vertices outside of cortex for which the values are 0 for most/all participants  
-If you look at the histogram of SD of vertices, you will see a peak in 0, which corresponds to the vertices we want to remove  
+>This is a more data driven approach to excluding vertices outside of cortex for which the values are 0 for most/all participants.  
+If you look at the histogram of SD of vertices, you will see a peak in 0, which corresponds to the vertices we want to remove.  
   
-See OSCA options *--get-variance* and *--get-mean*  
+See OSCA options *--get-variance* and *--get-mean*  and example in RR_4 section.
 
 ```{bash, message=FALSE, eval=FALSE}
 

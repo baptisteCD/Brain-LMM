@@ -12,27 +12,27 @@ output:
 # You need these libraries to run this template:
 library(rmarkdown)    # install.packages("rmarkdown") 
 library(epuRate)      # devtools::install_github("holtzy/epuRate", force=TRUE)
-library(readr)
 
 ```
 
 # Open data
 
-We have created a csv file using the R package *ukbtools* which contains all phenotypes available as part of our application, but limited to the participants imaged  
+We have created a csv file using the R package *ukbtools* which contains all phenotypes available as part of our application, but limited to the participants for which we have brain images  
 This reduces massively the size of the data and allows quicker handler with R  
 
-**We use the column names generated with ukbtools but do not use data completely recoded as we want to keep numeric values in the variables, even for discrete variables** 
+**We use the column names generated with ukbtools but do not use data completely recoded as we want to keep numeric values in the variables, even for discrete variables**  
 This is because OSCA does not accept factors, and requires discrete phenotypes to be coded with numbers  
 
 ```{R, message=FALSE, eval=F}
 
+library(readr)
 TT=read_csv( "UKB_phenotypes_15K_allData_Jan2019Update.csv")
 
 ```
 
 # Create new variables or reformat into more meaninful variables
 
-Note that we have found different versions of ukbtools (typically between on discovery and replication analyses) to behave slightly differently, in particular when setting new variable names  
+Note that we have found different versions of *ukbtools* (typically between on discovery and replication analyses) to behave slightly differently, in particular when setting new variable names  
 This may explain some problems you may experience when running our code (check your variable names, date format, and labels of discrete variables)  
 
 ```{R, message=FALSE, eval=F}
@@ -47,7 +47,7 @@ TT$Age_MRI<-as.numeric(TT$date_of_attending_assessment_centre_f53_2_0-TT$Date_bi
 hist(TT$Age_MRI, breaks = 500)
 length(which(is.na(TT$Age_MRI))) # No missing value
 
-# Sex variable changed name when updating ukbtools - sexuses_datacoding_9_f31_0_0 coded 0-1 became sex_f31_0_0 coded Female-Male
+# For example: Sex variable changed name when updating ukbtools - sexuses_datacoding_9_f31_0_0 coded 0-1 became sex_f31_0_0 coded Female-Male
 # We duplicated the sex variable in sexuses_datacoding_9_f31_0_0 so the code did not have to be changed in whole analysis
 TT$sexuses_datacoding_9_f31_0_0=TT$sex_f31_0_0
 
@@ -416,9 +416,11 @@ table(TT$uk_biobank_assessment_centre_f54_2_0, TT$ReplicationSample)
 # Regress out covariates and calculate fixed effects R2
 
 The phenotypes regressed out for covariates are written in several folders  
-The main folders for the analysis are **UKB_phenotypes_reg_Bsln** (baseline covariates) and **UKB_phenotypes_reg_Bsln_bdsz** (baseline covariate + body size)  
-Each phenotype is written in an individual tab separated file with 3 columns (no column names) **eid eid phenotype**  
-This way we can easily loop on phenotypes in the models by selecting the relevant file  
+The main folders for the analysis are: 
+- **UKB_phenotypes_reg_Bsln** (baseline covariates) and 
+- **UKB_phenotypes_reg_Bsln_bdsz** (baseline covariate + body size)  
+
+Each phenotype is written in an individual tab separated file with 3 columns (no column names) **eid eid phenotype**. This way we can easily loop on phenotypes in the models by selecting the relevant file.  
 
 ```{R, message=FALSE, eval=F}
 
@@ -465,7 +467,5 @@ write.csv(res, "FixedEffects_UKB_15K_Jan2019Update.csv")
 write_csv(TT, "UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv")
 
 ```
-
-
 
 <br><br>

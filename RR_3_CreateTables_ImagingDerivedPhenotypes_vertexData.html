@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>Create tables of cortical and subcortical measurements</title>
@@ -3063,17 +3063,17 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Create tables of cortical and subcortical measurements</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
 
 <div id="extract-roi-values-from-freesurfer-parcellation" class="section level1">
 <h1><span class="header-section-number">1</span> Extract ROI values from FreeSurfer parcellation</h1>
-<p>Such tables are not the main ones used in the analyses but they contain ICV and other useful measurements<br />
-They correspond to the ENIGMA - average values used by the ENIGMA consortium (LandRVolumes and ThickAvg / SurfAvg files)</p>
+<p>Such tables are not the main ones used in the analyses but they contain ICV and other useful measurements.<br />
+They correspond to the ENIGMA - average values used by the ENIGMA consortium (<em>LandRVolumes</em> and <em>ThickAvg / SurfAvg</em> files)</p>
 <p>NOTE: this code is identical to that of the ENIGMA processing protocols<br />
-<a href="http://enigma.ini.usc.edu/protocols/imaging-protocols/" class="uri">http://enigma.ini.usc.edu/protocols/imaging-protocols/</a></p>
+<a href="http://enigma.ini.usc.edu/protocols/imaging-protocols/" class="uri">http://enigma.ini.usc.edu/protocols/imaging-protocols/</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..5}</span></a>
 <a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">do</span></a>
@@ -3170,8 +3170,10 @@ They correspond to the ENIGMA - average values used by the ENIGMA consortium (La
 </div>
 <div id="extract-cortical-vertex-wise-data" class="section level1">
 <h1><span class="header-section-number">5</span> Extract cortical vertex-wise data</h1>
-<p>Here, I got a bit lazy and did not write the piece of code to initialise automatically the vertexnames<br />
-Instead I initialise using one individual (batch1/1002XXX) for which I checked processing went well</p>
+<blockquote>
+<p>Main imaging-derived phenotype tables for the analyses</p>
+</blockquote>
+<p>Here, I got a bit lazy and did not write the piece of code to initialise automatically the vertexnames. Instead I initialise using one individual (batch1/1002XXX) for which I checked processing went well.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..5}</span></a>
 <a class="sourceLine" id="cb5-3" data-line-number="3"><span class="kw">do</span></a>
@@ -3200,7 +3202,7 @@ Instead I initialise using one individual (batch1/1002XXX) for which I checked p
 </div>
 <div id="extract-subcortical-vertex-wise-data" class="section level1">
 <h1><span class="header-section-number">6</span> Extract subcortical vertex-wise data</h1>
-<p>Code provided by Boris Gutman in the ENIGMA-shape package</p>
+<p>Code provided by Boris Gutman as part of the <em>ENIGMA-shape</em> package</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb6-2" data-line-number="2"><span class="co"># create csv ID list (required input)</span></a>
 <a class="sourceLine" id="cb6-3" data-line-number="3"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..5}</span></a>
@@ -3259,7 +3261,9 @@ Instead I initialise using one individual (batch1/1002XXX) for which I checked p
 <h1><span class="header-section-number">8</span> Rename vertices and create final text files combining all batches</h1>
 <div id="cortical-data" class="section level2">
 <h2><span class="header-section-number">8.1</span> Cortical data</h2>
-<p>Note that we add the prefixes rht, lht, rha and lha to cortical vertices numbers in order to avoid duplicates when we will put all vertices togeter</p>
+<blockquote>
+<p>First we add the prefixes rht, lht, rha and lha to cortical vertices numbers in order to avoid duplicates when we will put all vertices togeter.</p>
+</blockquote>
 <div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb8-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb8-2" data-line-number="2"><span class="co"># Initialise</span></a>
 <a class="sourceLine" id="cb8-3" data-line-number="3"><span class="fu">awk</span> <span class="st">'BEGIN{OFS=&quot;\t&quot;}$1=&quot;rht_&quot;$1'</span> <span class="va">${wd}</span>/FS/rh.thickness.batch1.fwhm0.UKB.txt <span class="op">&gt;</span> <span class="va">${wd}</span>/FS/rh.thickness.fwhm0.UKB.txt</a>
@@ -3291,7 +3295,9 @@ Instead I initialise using one individual (batch1/1002XXX) for which I checked p
 </div>
 <div id="subcortical-data" class="section level1">
 <h1><span class="header-section-number">9</span> Subcortical data</h1>
+<blockquote>
 <p>We kept the vertex names used in the ENIGMA-shape package, which are all unique</p>
+</blockquote>
 <div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb9-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb9-2" data-line-number="2"><span class="co"># Initialise</span></a>
 <a class="sourceLine" id="cb9-3" data-line-number="3"><span class="kw">for</span> <span class="ex">moda</span> in thick LogJacs</a>
@@ -3339,7 +3345,7 @@ Instead I initialise using one individual (batch1/1002XXX) for which I checked p
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

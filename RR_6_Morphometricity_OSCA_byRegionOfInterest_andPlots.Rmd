@@ -7,11 +7,11 @@ output:
     code_folding: "show"
 ---
 
-# Create list of vertices for each cortical and subcortical regions, for left and right hemispheres
+# Create list of vertices for each cortical and subcortical region
 
 See *atlas* folder for the **fsaverage_vertex_labels_names_order2.txt** file 
 
-**You do not need to run this first section, unless you want to use a different atlas.** Here we used cortical regions defined by the Desikan atlas. We extracted from FreeSurfer the information relative to each vertex coordinates (may be useful for plotting) and ROI they belong to.  
+> **You do not need to run this first section, unless you want to use a different atlas.** Here we used cortical regions defined by the Desikan atlas. We extracted from FreeSurfer the information relative to each vertex coordinates and ROI they belong to.  
 
 ## Cortical ROIs
 
@@ -39,6 +39,7 @@ for (roi in unique(label$RHLabel)){
 write.table(paste0("rha_",vertices2Write), paste0("atlas/Vertices_", roi,"_rh_area_UKB.txt"), col.names = F, row.names = F, quote=F )
 write.table(paste0("rht_",vertices2Write), paste0("atlas/Vertices_", roi,"_rh_thickness_UKB.txt"), col.names = F, row.names = F, quote=F )
 }
+
 ```
 
 ## Subcortical ROIs
@@ -70,9 +71,9 @@ write.table(paste0("thick_",vertices2Write), paste0("atlas/Vertices_", roi,"_rh_
 
 ## Cortical
 
-```{bash, message=FALSE, eval=FALSE}
+Here, we integrated loops on hemisphere and modality inside each job to limit the number of jobs submitted. You may want to parallelise it further if you cluster allows it.   
 
-# Integrate loops on hemisphere and modality inside each job to limit the number of jobs submitted
+```{bash, message=FALSE, eval=FALSE}
 
 for ROI in lingual isthmuscingulate pericalcarine precuneus unknown postcentral precentral parsopercularis supramarginal superiorfrontal caudalmiddlefrontal bankssts inferiorparietal middletemporal lateraloccipital fusiform temporalpole inferiortemporal entorhinal parstriangularis rostralmiddlefrontal parsorbitalis cuneus superiorparietal parahippocampal rostralanteriorcingulate medialorbitofrontal lateralorbitofrontal superiortemporal insula caudalanteriorcingulate frontalpole posteriorcingulate paracentral transversetemporal 
 do 
@@ -84,6 +85,7 @@ do |;
 done |;
 done |; " 1 10G BRM_${ROI} 10:00:00 "-acct=UQ-IMB-CNSG" 
 done
+
 ```
 
 ## Subcortical
@@ -118,7 +120,7 @@ R
 
 ```
 
-## Extract BRM  cut-off values
+## Extract BRM cut-off values
 
 ```{r, message=FALSE, eval=F}
 
@@ -183,6 +185,7 @@ echo \${nrow} |;
 done |;
 done |; " 1 4G BRM_QC_${ROI} 10:00:00 "-acct=UQ-IMB-CNSG" 
 done
+
 ```
 
 ## Cortical 
@@ -208,9 +211,9 @@ done
 
 # Estimate ROI-morphometricity or association with each ROI
 
-The following example uses phenotypes regressed out for baseline and body size variables    
+The following example uses phenotypes regressed out for baseline and body size variables.    
 
-We loop on modalities (area / thickness) and hemisphere inside the job to reduce charge on cluster : npheno x nROIs  jobs instead of npheno x nROIs x 8 jobs   
+We loop on modalities (area / thickness) and hemisphere inside the job to reduce charge on cluster : npheno x nROIs  jobs instead of npheno x nROIs x 8 jobs.   
 
 **Note that we limit ourselves to phenotypes significant in the global morphometricity analysis to reduce computational cost**    
 
@@ -235,6 +238,7 @@ do |;
 done |;
 done " 1 4G BREML_${ROI} 5:00:00 "-array=1-43 -acct=UQ-IMB-CNSG" 
 done
+
 ```
 
 ## Subcortical ROI associations
@@ -263,14 +267,11 @@ done
 
 # Put all results together 
 
-## Interactive session 
+## Request interactive job 
 
 ```{bash, message=FALSE, eval=F}
 
 qsub -I -X -l select=1:ncpus=1:mem=15GB -l walltime=05:00:00 -A UQ-IMB-CNSG
-
-wd="working/directory"
-cd $wd
 module load R
 R
 
@@ -279,8 +280,6 @@ R
 ## Loop on output files and extract values of interest
 
 ```{r, message=FALSE, eval=F}
-
-signifUKB<-0.05/175
 
 formatedPhe=read.csv("UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv", stringsAsFactors = F)
 signi=read.table("UKB_Phenotypes_signif_Bslne_bdsz.txt")
@@ -390,7 +389,7 @@ for (cn in 1:length(colnames(allvar0))){
  colnames(allvar0)[cn]= tail(strsplit(colnames(allvar0),split=" ")[[cn]],1)
 }
 
-# Significance threshold
+# Bonferroni significance threshold
 signif_ROI=0.05/(58*176)
 
 allvar0[which(is.na(allvar0), arr.ind = T)]=0
@@ -447,6 +446,7 @@ text(x = 154, y = vOffset+1, labels = "Left", col="grey",xpd = T)
   text(x = 161, y = vOffset+1, labels = "Right", col="grey",xpd = T)
   brackets(158, vOffset, 164, vOffset,h = 0.5,  type = 1, lwd = 2, lty = 1, xpd = T, col="grey")
 dev.off()
+
 ```
 
 ## Write full table
@@ -463,7 +463,5 @@ for (jjj in 1:length(allvar0[1,])){
 write.csv(allvar02Write, "STX_UKB_allROIS_Bsln_bdsz_covariates.csv")
 
 ```
-
-
 
 <br><br>

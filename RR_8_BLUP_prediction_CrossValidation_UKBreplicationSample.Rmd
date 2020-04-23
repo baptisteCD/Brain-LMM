@@ -9,14 +9,15 @@ output:
 
 # Estimate BLUP scores using cross-validation in the discovery sample 
 
-We have created 10 lists of IDs (*eid eid*) named **UKB_ID_crossValidation_XX.txt** that we use for the cross validation  
-Note that each list of IDs contain 9/10 of the sample (not the other way around), though OSCA could also accomodate it  
+We have created 10 lists of IDs (*eid eid*) named **UKB_ID_crossValidation_XX.txt** that we use for the cross validation.   
+Note that each list of IDs contain 9/10 of the sample (not the other way around), though OSCA could also accomodate it.  
 
 ## Estimate BLUP random effect values for individuals
 
 ```{bash, message=FALSE, eval=F}
 
-od=${wd}/BLUP_Bslne_bdsz # Where all blup outputs and intermediary files will be stored (as well as job log files)
+mkdir -p ${wd}/BLUP_Bslne_bdsz
+od=${wd}/BLUP_Bslne_bdsz 
 cd ${od}
 
 for batch in {1..10}
@@ -56,12 +57,9 @@ done
 
 # BLUP scores from full discovery sample for out of sample prediction
 
-We now assume you have an indepdenent sample, processed the same way as the discovery sample  
-BOD files have been created for this independent sample, which may be another cohort (e.g. HCP) or a later release of the UKB (UKB replication) as per our manuscript  
+> We now assume you have an indepdenent sample, processed the same way as the discovery sample. BOD files have been created for this independent sample, which may be another cohort (e.g. HCP) or a later release of the UKB (UKB replication) as per our manuscript.  
 
-## BLUP weights on full discovery sample
-
-We have combined the 2 steps above into a single script for simplicity  
+## Calculate BLUP weights from full discovery sample
 
 ```{bash, message=FALSE, eval=F}
 
@@ -111,9 +109,9 @@ phe=read.csv("UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv", 
 signi=read.table("UKB_Phenotypes_signif_Bslne.txt")
 phe=phe[which(phe$V4 %in% signi$V1),]
 
-# In our example the first column is the predicted variable (used in training), the 4th column is the new variable that we are trying to predict. In some cases the names are the same, the differences come from different naming conventions in the ukbtools package between our data update.  
-
 ```
+
+In this example the first column is the predicted variable (used in training), the 4th column is the new variable that we are trying to predict. In some cases the names are the same (prediction from UKB into UKB) but often the exact same variables are not available in the test sample.  
 
 # Read BLUP scores and merge with phenotype file
 
@@ -178,9 +176,7 @@ mICV[BRSvarLoop, "auc.se"]<-sqrt(var(roc(TT2[,newVarLoop]~ TT2[,BRSvarLoop])))
 mICV[BRSvarLoop, "auc"]<-NA
 mICV[BRSvarLoop, "auc.se"]<-NA
 }
-
 res<-rbind(res,cbind(BRSvarLoop,  newVarLoop, mICV[BRSvarLoop,]) )
-
 }
 
 # Write results

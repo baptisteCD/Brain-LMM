@@ -9,36 +9,35 @@ output:
 
 # Convert full bod file into text
 
-Here, the bod file contains vertex-wise values for the discovery and replication sample  
+Here, the bod file contains vertex-wise values for the discovery and replication sample.   
 
 ```{bash, message=FALSE, eval=F}
 
 ${bind}/qsubshcom " "${bind}"/osca --befile "${wd}"/BodFiles/AllVertices.fwhm0.fsaverage.UKB15K --make-efile --out "${wd}"/BodFiles/AllVertices.fwhm0.fsaverage.UKB15K.txt " 1 80G MakeEfile 4:00:00 "-acct=UQ-IMB-CNSG"
  
-mkdir -p /gpfs1/scratch/30days/uqbcouvy/UKB_MRI/UKB_15K/LassoRidgePred
+mkdir -p ${wd}/LassoRidgePred
 
 ```
 
 # Run lasso and ridge (when available) using different R packages
 
-We have made several scripts (*RR_9.0*) that use the different R packages that have implemented penalised regression  
-**Note that with the size of the current data, only the *bigstatsr* package managed to perform the analyses**  
+> We have made several scripts (*RR_9.0*) that use the different R packages that have implemented penalised regression. **Note that with the size of the current data, only the *bigstatsr* package managed to perform the analyses.**  
 
 All R scripts require the following arguments:   
-*/working/directory/* # setwd() in R  
-*VertexFile.txt* # created above    
-*outputFolder*  
-*variable name*  
-*lasso or ridge*  
-*n cpus to use*  
+-*/working/directory/* : setwd() in R  
+-*VertexFile.txt* : created above    
+-*outputFolder*  
+-*variable name*  
+-*lasso or ridge*  
+-*n cpus to use*  
 
 They require two lists of IDs in order to separate discovery and replication (train / test samples)  
-*$wd/BodFiles/ID_discovery_UKBanalysis.txt*   
-*$wd/BodFiles/ID_replication_UKBanalysis.txt*   
+-*/${wd}/BodFiles/ID_discovery_UKBanalysis.txt*
+-*/${wd}/BodFiles/ID_replication_UKBanalysis.txt*   
 
 # Using bigstatsr package (as in manuscript)
 
-To our knowledge, this package only allows for lasso regression  
+To our knowledge, this package does not implement ridge regression  
 
 ```{bash, message=FALSE, eval=F}
 
@@ -53,7 +52,7 @@ done
 
 # Using glmnet and biglasso packages 
 
-For us, it only worked on a subset of the data but could not scale to the full sample  
+For us, it only worked on a subset of the data but could not scale to the full sample. For *biglasso*, simply replace *RR_9.0_PenalisedRegressionFunction_glmnet.R* by the biglasso equivalent.  
 
 ```{bash, message=FALSE, eval=F}
 
@@ -64,24 +63,20 @@ do
 ${bind}/qsubshcom " Rscript --no-save 'RR_9.0_PenalisedRegressionFunction_glmnet.R' /working/directory AllVertices.fwhm0.fsaverage.UKB15K.txt LassoRidgePred \$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_Phenotypes_signif_Bslne.txt) "${mod}" 1" 1 250G R_penalised_glmnet_${mod} 48:00:00 "-array=1-2 -acct=UQ-IMB-CNSG"
 done
 
-# On full sample 
-# Error in elnet(x, is.sparse, ix, jx, y, weights, offset, type.gaussian,  : 
-#  long vectors (argument 5) are not supported in .Fortran
-#Calls: cv.glmnet -> cv.glmnet.raw -> glmnet -> elnet
-#Execution halted
-
-# Similarily using biglasso, we got the error:
-
-#Error in SetMatrixElements(x@address, as.double(j), as.double(i), as.double(value)) : 
- # long vectors not supported yet: ../../src/include/Rinlinedfuns.h:522
-#Calls: as.big.matrix ... [<- -> .local -> SetElements.bm -> SetMatrixElements
-#Execution halted
-
 ```
 
-# Evaluate prediction
+> On full sample, we got error: 
+Error in elnet(x, is.sparse, ix, jx, y, weights, offset, type.gaussian,  : long vectors (argument 5) are not supported in .Fortran
+Calls: cv.glmnet -> cv.glmnet.raw -> glmnet -> elnet
+Execution halted
 
-## Open phenotype files
+> Similarily using biglasso, we got the error:
+Error in SetMatrixElements(x@address, as.double(j), as.double(i), as.double(value)) : 
+long vectors not supported yet: ../../src/include/Rinlinedfuns.h:522
+Calls: as.big.matrix ... [<- -> .local -> SetElements.bm -> SetMatrixElements
+Execution halted
+
+# Open phenotype files
 
 ```{R, message=FALSE, eval=F}
 
@@ -176,10 +171,9 @@ res<-rbind(res,cbind(BRSvarLoop,  newVarLoop, mICV[BRSvarLoop,]) )
 # Write results
 write.csv(res, "Lasso_prediction_UKB_replicationsample5K.csv")
 
-
 ```
 
-# Final plots - BLUP vs. LASSO
+# Plot - BLUP vs. LASSO prediction accuracy
 
 ```{r, message=FALSE, eval=F}
 

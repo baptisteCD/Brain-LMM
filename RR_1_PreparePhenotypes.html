@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>UKB phenotype data formatting</title>
@@ -3063,21 +3063,23 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">UKB phenotype data formatting</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
 
 <div id="open-data" class="section level1">
 <h1><span class="header-section-number">1</span> Open data</h1>
-<p>We have created a csv file using the R package <em>ukbtools</em> which contains all phenotypes available as part of our application, but limited to the participants imaged<br />
+<p>We have created a csv file using the R package <em>ukbtools</em> which contains all phenotypes available as part of our application, but limited to the participants for which we have brain images<br />
 This reduces massively the size of the data and allows quicker handler with R</p>
-<p><strong>We use the column names generated with ukbtools but do not use data completely recoded as we want to keep numeric values in the variables, even for discrete variables</strong> This is because OSCA does not accept factors, and requires discrete phenotypes to be coded with numbers</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">TT=<span class="kw">read_csv</span>( <span class="st">&quot;UKB_phenotypes_15K_allData_Jan2019Update.csv&quot;</span>)</a></code></pre></div>
+<p><strong>We use the column names generated with ukbtools but do not use data completely recoded as we want to keep numeric values in the variables, even for discrete variables</strong><br />
+This is because OSCA does not accept factors, and requires discrete phenotypes to be coded with numbers</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(readr)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">TT=<span class="kw">read_csv</span>( <span class="st">&quot;UKB_phenotypes_15K_allData_Jan2019Update.csv&quot;</span>)</a></code></pre></div>
 </div>
 <div id="create-new-variables-or-reformat-into-more-meaninful-variables" class="section level1">
 <h1><span class="header-section-number">2</span> Create new variables or reformat into more meaninful variables</h1>
-<p>Note that we have found different versions of ukbtools (typically between on discovery and replication analyses) to behave slightly differently, in particular when setting new variable names<br />
+<p>Note that we have found different versions of <em>ukbtools</em> (typically between on discovery and replication analyses) to behave slightly differently, in particular when setting new variable names<br />
 This may explain some problems you may experience when running our code (check your variable names, date format, and labels of discrete variables)</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># Age at MRI</span></a>
 <a class="sourceLine" id="cb2-2" data-line-number="2">TT<span class="op">$</span>Age_MRI&lt;-<span class="ot">NA</span></a>
@@ -3089,7 +3091,7 @@ This may explain some problems you may experience when running our code (check y
 <a class="sourceLine" id="cb2-8" data-line-number="8"><span class="kw">hist</span>(TT<span class="op">$</span>Age_MRI, <span class="dt">breaks =</span> <span class="dv">500</span>)</a>
 <a class="sourceLine" id="cb2-9" data-line-number="9"><span class="kw">length</span>(<span class="kw">which</span>(<span class="kw">is.na</span>(TT<span class="op">$</span>Age_MRI))) <span class="co"># No missing value</span></a>
 <a class="sourceLine" id="cb2-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co"># Sex variable changed name when updating ukbtools - sexuses_datacoding_9_f31_0_0 coded 0-1 became sex_f31_0_0 coded Female-Male</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co"># For example: Sex variable changed name when updating ukbtools - sexuses_datacoding_9_f31_0_0 coded 0-1 became sex_f31_0_0 coded Female-Male</span></a>
 <a class="sourceLine" id="cb2-12" data-line-number="12"><span class="co"># We duplicated the sex variable in sexuses_datacoding_9_f31_0_0 so the code did not have to be changed in whole analysis</span></a>
 <a class="sourceLine" id="cb2-13" data-line-number="13">TT<span class="op">$</span>sexuses_datacoding_<span class="dv">9</span>_f31_<span class="dv">0</span>_<span class="dv">0</span>=TT<span class="op">$</span>sex_f31_<span class="dv">0</span>_<span class="dv">0</span></a>
 <a class="sourceLine" id="cb2-14" data-line-number="14"></a>
@@ -3407,9 +3409,8 @@ Contact us, if you are interested by results not published yet</p>
 <div id="regress-out-covariates-and-calculate-fixed-effects-r2" class="section level1">
 <h1><span class="header-section-number">5</span> Regress out covariates and calculate fixed effects R2</h1>
 <p>The phenotypes regressed out for covariates are written in several folders<br />
-The main folders for the analysis are <strong>UKB_phenotypes_reg_Bsln</strong> (baseline covariates) and <strong>UKB_phenotypes_reg_Bsln_bdsz</strong> (baseline covariate + body size)<br />
-Each phenotype is written in an individual tab separated file with 3 columns (no column names) <strong>eid eid phenotype</strong><br />
-This way we can easily loop on phenotypes in the models by selecting the relevant file</p>
+The main folders for the analysis are: - <strong>UKB_phenotypes_reg_Bsln</strong> (baseline covariates) and - <strong>UKB_phenotypes_reg_Bsln_bdsz</strong> (baseline covariate + body size)</p>
+<p>Each phenotype is written in an individual tab separated file with 3 columns (no column names) <strong>eid eid phenotype</strong>. This way we can easily loop on phenotypes in the models by selecting the relevant file.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">res=<span class="kw">as.data.frame</span>(<span class="kw">matrix</span>(<span class="ot">NA</span>, <span class="dt">ncol=</span><span class="dv">8</span>, <span class="dt">nrow =</span> <span class="kw">length</span>(UKBvar<span class="op">$</span>V4)) )</a>
 <a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw">colnames</span>(res)=<span class="kw">c</span>(<span class="st">&quot;Variable&quot;</span>, <span class="st">&quot;r0&quot;</span>, <span class="st">&quot;rage&quot;</span>, <span class="st">&quot;rsex&quot;</span>, <span class="st">&quot;rbrain&quot;</span>, <span class="st">&quot;rbody&quot;</span>,<span class="st">&quot;rheight&quot;</span>, <span class="st">&quot;rWBMI&quot;</span>)</a>
 <a class="sourceLine" id="cb15-3" data-line-number="3">res<span class="op">$</span>Variable=UKBvar<span class="op">$</span>V4</a>
@@ -3459,7 +3460,7 @@ This way we can easily loop on phenotypes in the models by selecting the relevan
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

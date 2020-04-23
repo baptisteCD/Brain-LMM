@@ -18,7 +18,9 @@ mkdir -p ${wd}/BREML_all_QC_reg_Bsln_bdsz
 
 # Run mixed models using all the files created previously 
 
-> We submit a single array job, which contains 224 individual jobs, which is the number of phenotypes (*-array=1-224*)   
+> We submit a single array job (*-array=1-224*), which contains 224 individual jobs, which is the number of phenotypes in the phenotype list *UKB_phenotypes_allList_Jan19Update.txt*  
+
+## Baseline covariates
 
 ```{bash, message=FALSE, eval=F}
 
@@ -27,8 +29,12 @@ cd ${od}
 
 ${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt) |; 
 "${bind}"/osca --reml --orm "${wd}"/BodFiles/allVerticesBRM_QC --pheno "${wd}"/Phenotypes15K/UKB_phenotypes_reg_Bsln/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt)_reg.txt --out "${od}"/FullModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt).outliers.UKB --reml-maxit 10000 " 1 4G FullModel_Bsln 4:00:00 "-array=1-224 -acct=UQ-IMB-CNSG" 
+```
 
-# Now using phenotypes regressed out for baseline and body size variables
+## Now using phenotypes regressed out for baseline and body size variables
+
+```{bash, message=FALSE, eval=F}
+
 od="working/directory/BREML_all_QC_reg_Bsln_bdsz"
 cd ${od}
  
@@ -39,7 +45,7 @@ ${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_p
 
 # Read results and put data together
 
-## Baselie covariates results
+## Baseline covariates results
 
 ```{R, message=FALSE, eval=FALSE}
 
@@ -109,7 +115,8 @@ write.table(allPheno, paste0("BREML_UKB_T1T2_QC_reg_Bsln_bdsz.txt"), sep="\t", c
 
 # Circular barplots 
 
-Here, we show how to make the plot in the case of baseline covariates  
+> Here, we show how to make the plot in the case of baseline covariates  
+
 For body-size corrected analyses the code needs to be slighty adapted to include the R2 corresponding to body size (fixed effect), which requires an additional colour and variable *value6* in the dat table  
 
 ```{R, message=FALSE, eval=FALSE}

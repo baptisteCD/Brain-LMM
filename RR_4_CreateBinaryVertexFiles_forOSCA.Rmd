@@ -35,7 +35,7 @@ done
 
 # Exclude vertices outside of cortex
 
-The VerticesToExclude files can be found in the atlas folder of the GitHub repository (*atlas* folder)  
+The *VerticesToExclude* files can be found in the *atlas* folder of the GitHub repository. Another more data-driven way is to exclude vertices based on their standard deviation (vertices outside of cortex have 0 values for most-to-all subjects) using the *OSCA* option *--sd-min* (<https://cnsgenomics.com/software/osca/#ManageBODfile(s)>).
 
 ```{bash, message=FALSE, eval=FALSE}
 
@@ -59,9 +59,14 @@ for moda in thickness area thick LogJacs
 do
 ${bind}/qsubshcom " "${bind}"/osca --befile "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.vertexQC --make-orm-bin --out "${wd}"/BodFiles/"${hemi}"."${moda}".fwhm0.UKB.BRM --thread-num 5 " 5 30G ${hemi}_${moda}_BRM_calculation 10:00:00 "-acct=UQ-IMB-CNSG" 
 done
-done 
+done
 
-# Extract mean and variance per probe 
+```
+
+# Extract mean and variance of each vertex 
+
+```{bash, message=FALSE, eval=FALSE}
+
 for hemi in lh rh
 do
 for moda in thickness area thick LogJacs
@@ -76,7 +81,7 @@ done
 
 ## Requires to standardise the probes first
 
-For all other analyses, the vertex files do not need to be standardised or OSCA does it for you automatically
+For all other analyses, the vertex files either do not need to be standardised or *OSCA* does it for you automatically.
 
 ```{bash, message=FALSE, eval=F}
 
@@ -92,7 +97,7 @@ done
 
 ## Merge all Bod files
 
-You will need a text file mybod.flist which contains the path/names of the bod files (standardised) you want to merge
+You will need a text file *mybod.flist* which contains the path/names of the bod files (standardised) you want to merge
 
 ```{bash, message=FALSE, eval=F}
 
@@ -102,7 +107,7 @@ ${bind}/qsubshcom " "${bind}"/osca --befile-flist "${wd}"/mybod.flist --make-bod
 
 # Merge BRMs 
 
-You will need a text file mergeBRM_All.txt which contains the path/names of the BRM you want to merge  
+You will need a text file *mergeBRM_All.txt* which contains the path/names of the BRM you want to merge  
 
 ```{bash, message=FALSE, eval=F}
 
@@ -111,7 +116,7 @@ ${bind}/qsubshcom " "${bind}"/osca --merge-orm "$wd"/mergeBRM_All.txt --make-orm
 
 # Perform QC using the BRMs 
 
-This section uses a R script to open the BRMs, produce plots and calculate BRM off-diagonal cut-off to use in QC  
+> This section uses a R script to open the BRMs, produce plots and calculate BRM off-diagonal cut-off to use in QC.  
 
 ```{bash, message=FALSE, eval=F}
 
@@ -162,10 +167,9 @@ print(vals)
 
 # Enforce cutoff on off-diagonal elements
 
-In this article (replication) we used a cutoff a 5SD from mean but this results in a quite stringent QC  
+Note that in the replication sample we used a cutoff a 5SD from mean but this results in a quite stringent QC.  
 
 ```{bash, message=FALSE, eval=F}
-
 
 ${bind}/qsubshcom " "${bind}"/osca --reml --orm "${wd}"/allVerticesBRM --orm-cutoff 0.21 --orm-cutoff-2sides --make-orm --out "${wd}"/allVerticesBRM_QC " 1 4G BRM_QC 4:00:00 "-acct=UQ-IMB-CNSG" 
 

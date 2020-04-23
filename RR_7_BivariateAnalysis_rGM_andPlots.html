@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>Bivariate analyses to estimate grey-matter correlation</title>
@@ -3063,20 +3063,20 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Bivariate analyses to estimate grey-matter correlation</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
 
-<div id="open-data-and-subset-into-discovery-and-replication" class="section level1">
-<h1><span class="header-section-number">1</span> Open data and subset into discovery and replication</h1>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">TT=<span class="kw">read.csv</span>(<span class="st">&quot;UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv&quot;</span>)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="co"># Note, I use read.csv here, which is a bit slow. Though, I found that using read_csv makes a df and does not allow to call TT[,columnName]</span></a></code></pre></div>
+<div id="open-phenotype-data" class="section level1">
+<h1><span class="header-section-number">1</span> Open phenotype data</h1>
+<p>I use read.csv here, which is a slower than <em>readr::read_csv()</em>. This is because I found that using <em>read_csv</em> opens the table as a <em>data frame</em> (not a <em>data table</em>) which does not allow to call TT[,columnName]</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">TT=<span class="kw">read.csv</span>(<span class="st">&quot;UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv&quot;</span>)</a></code></pre></div>
 </div>
 <div id="write-all-pairwise-phenotypes" class="section level1">
 <h1><span class="header-section-number">2</span> Write all pairwise phenotypes</h1>
-<p>The aim of this code section is to write bivariate phenotype files that have the form <strong>eid eid pheno1 pheno2</strong> which will be read in OSCA to perform bivariate analyses</p>
-<p>We restrict ourselves to phenotypes with significant morphometricity</p>
+<p>The aim of this code section is to write bivariate phenotype files that have the form <strong>eid eid pheno1 pheno2</strong> which will be read in OSCA to perform bivariate analyses.</p>
+<p>We restrict ourselves to phenotypes with significant morphometricity.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># Phenotype names</span></a>
 <a class="sourceLine" id="cb2-2" data-line-number="2">phe=<span class="kw">read.csv</span>(<span class="st">&quot;UKB_allvars_categories_fancylabels_withOldNames_Jan19Update.csv&quot;</span>, <span class="dt">stringsAsFactors =</span> F)</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"></a>
@@ -3111,7 +3111,7 @@ div.tocify {
 <div id="run-bivariate-models-in-gcta" class="section level1">
 <h1><span class="header-section-number">3</span> Run bivariate models in GCTA</h1>
 <p><strong>As bivariate analysis is not yet implemented in OSCA, we use GCTA. The trick is to rename the BRMs so GCTA sees them as GRM (genetic relatedness matrices).</strong><br />
-GCTA also allows for multi-tread for faster computation (here 5 cpus per job)</p>
+GCTA also allows for multi-tread for faster computation (here 5 cpus per job).</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="va">od=</span><span class="st">&quot;working/directory/BREML_bivariate_reg_Bsln_bdsz&quot;</span></a>
 <a class="sourceLine" id="cb3-3" data-line-number="3"></a>
@@ -3121,7 +3121,7 @@ GCTA also allows for multi-tread for faster computation (here 5 cpus per job)</p
 <a class="sourceLine" id="cb3-7" data-line-number="7"><span class="fu">cp</span> allVerticesBRM_QC.orm.N.bin allVerticesBRM_QC.grm.N.bin</a>
 <a class="sourceLine" id="cb3-8" data-line-number="8"></a>
 <a class="sourceLine" id="cb3-9" data-line-number="9"><span class="bu">cd</span> <span class="va">${od}</span></a>
-<a class="sourceLine" id="cb3-10" data-line-number="10"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot;echo </span><span class="dt">\$</span><span class="st">{TASK_ID}.</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> &quot;</span><span class="va">${wd}</span><span class="st">&quot;/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt) |;  &quot;</span><span class="va">${bind}</span><span class="st">&quot;/gcta64 --reml-bivar 1 2 --grm-bin &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/allVerticesBRM_QC --pheno  &quot;</span><span class="va">${wd}</span><span class="st">&quot;/Phenotypes15K_Jan2019Update/UKB_phenotypes_bivariate_reg_Bsln_bdsz/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> &quot;</span><span class="va">${wd}</span><span class="st">&quot;/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).txt --out  &quot;</span><span class="va">${od}</span><span class="st">&quot;/BivModel.</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> &quot;</span><span class="va">${wd}</span><span class="st">&quot;/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).outliers.UKB --reml-maxit 10000 --reml-bivar-lrt-rg 0 --thread-num 5 &quot;</span> 5 20G GREML_all 48:00:00 <span class="st">&quot;-array=1-1378 -acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
+<a class="sourceLine" id="cb3-10" data-line-number="10"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot;echo </span><span class="dt">\$</span><span class="st">{TASK_ID}.</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> &quot;</span><span class="va">${wd}</span><span class="st">&quot;/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt) |;  &quot;</span><span class="va">${bind}</span><span class="st">&quot;/gcta64 --reml-bivar 1 2 --grm-bin &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/allVerticesBRM_QC --pheno  &quot;</span><span class="va">${wd}</span><span class="st">&quot;/Phenotypes15K/UKB_phenotypes_bivariate_reg_Bsln_bdsz/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> &quot;</span><span class="va">${wd}</span><span class="st">&quot;/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).txt --out  &quot;</span><span class="va">${od}</span><span class="st">&quot;/BivModel.</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> &quot;</span><span class="va">${wd}</span><span class="st">&quot;/UKB_phenotypesPairs_bivariate_Bsln_bdsz.txt).outliers.UKB --reml-maxit 10000 --reml-bivar-lrt-rg 0 --thread-num 5 &quot;</span> 5 20G GREML_all 48:00:00 <span class="st">&quot;-array=1-1378 -acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
 </div>
 <div id="extract-rgm-and-phenotypic-correlations" class="section level1">
 <h1><span class="header-section-number">4</span> Extract rGM and phenotypic correlations</h1>
@@ -3196,7 +3196,7 @@ GCTA also allows for multi-tread for faster computation (here 5 cpus per job)</p
 </div>
 <div id="calculate-residual-correlations" class="section level1">
 <h1><span class="header-section-number">5</span> Calculate residual correlations</h1>
-<p>findVCOVmatFromGCTAOutput() is a R function that extract the matrix of variance covariace of model estimates from <em>qsubshcom</em> log files</p>
+<p><em>findVCOVmatFromGCTAOutput()</em> is a R function that extract the matrix of variance covariace of model estimates from <em>qsubshcom</em> log files.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># Load functions to find matrix of var-covar of estimates and calculate the rE and SE </span></a>
 <a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">source</span>(<span class="st">&quot;RR_7.0_rE_SE_functions.R&quot;</span>)</a>
 <a class="sourceLine" id="cb5-3" data-line-number="3"></a>
@@ -3304,7 +3304,7 @@ GCTA also allows for multi-tread for faster computation (here 5 cpus per job)</p
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

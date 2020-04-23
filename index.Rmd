@@ -8,18 +8,18 @@ output:
 ---
 
 \
-*Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher*
+>*Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher*
  
-The code is presented in a serie of Rmarkdown files with corresponding html knitted files. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.   
+>The code is presented in a serie of Rmarkdown files with corresponding html knitted files that compose this website. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.   
 \
 
 # Dependencies 
 
 **qsubshcom**\
 Sections of the code in **bash** may be run directly on a high performance cluster thanks to the **qsubshcom** piece of software. (<https://github.com/zhilizheng/qsubshcom>)  
-In short, **qsubshcom** is a job submission wrapper that adapts automatically to the cluster system, which makes our code highly portable: you only need to change the paths to working directory or your own files. 
+In short, **qsubshcom** is a job submission wrapper that adapts automatically to the cluster system, which makes our code highly portable: you only need to set up a few paths (see below) and run on you cluster. 
 
-Steps that do not require much time/memory were usually run in an interactive session (they come without the **qsubshcom** syntax) 
+Steps that do not require much time/memory were sometimes run in an interactive session (they come without the **qsubshcom** syntax) 
 
 **FreeSurfer 6.0**\
 Image processing requires FreeSurfer 6.0 (<https://surfer.nmr.mgh.harvard.edu/>). 
@@ -28,17 +28,18 @@ Image processing requires FreeSurfer 6.0 (<https://surfer.nmr.mgh.harvard.edu/>)
 Subcortical processing further requires the scripts developped by Boris Gutman for the ENIGMA consortium (<http://enigma.ini.usc.edu/protocols/imaging-protocols/>).
 
 **OSCA**\
-Most of the analyses were performed using the **OSCA** software (<https://cnsgenomics.com/software/osca/#Overview>). 
+Most of the mixed model analyses were performed using the **OSCA** software (<https://cnsgenomics.com/software/osca/#Overview>). 
 
 **GCTA**\
-For bivariate models, the option is yet to be implemented in OSCA so we detail the trick we use to run those models in GCTA (<https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis>).
+For bivariate models, the option is yet to be implemented in OSCA. We used a trick to run those models in GCTA (<https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis>).
 
 **R**\
-Plots, some data management and penalised regression were performed using R3.3 to 3.6. See manuscript (or code) for full list of packages used.
+Plots, some data management and penalised regression (LASSO) were performed using R version 3.3 to 3.6. See manuscript (or code) for full list of packages used.
 
 # Atlas files
 
-We created a bunch of useful files to facilitate the analysis, for example to prune out vertices outside of the cortex, to relate each vertex to a cortical/subcortical region... They are available in the **atlas** folder of this repository
+We created a bunch of files to facilitate the analysis. They may be used to prune out vertices outside of the cortex or to relate each vertex to a cortical/subcortical region.
+They are available in the **atlas** folder of this repository.  
  
 # General organisation of the working directory ${wd}
 

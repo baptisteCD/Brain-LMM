@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>A unified framework for association and prediction from vertex-wise grey-matter structure</title>
@@ -2991,36 +2991,38 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">A unified framework for association and prediction from vertex-wise grey-matter structure</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
 
 <p><br />
-<em>Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher</em></p>
-<p>The code is presented in a serie of Rmarkdown files with corresponding html knitted files. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.<br />
+&gt;<em>Baptiste Couvy-Duchesne, Lachlan T. Strike, Futao Zhang, Yan Holtz, Zhili Zheng, Kathryn E. Kemper, Loic Yengo, Olivier Colliot, Margaret J. Wright, Naomi R. Wray, Jian Yang, Peter M. Visscher</em></p>
+<blockquote>
+<p>The code is presented in a serie of Rmarkdown files with corresponding html knitted files that compose this website. It presents the code allowing the perform all analyses and generate plots presented in the manuscript.<br />
 <br />
 </p>
+</blockquote>
 <div id="dependencies" class="section level1">
 <h1><span class="header-section-number">1</span> Dependencies</h1>
 <p><strong>qsubshcom</strong><br />
 Sections of the code in <strong>bash</strong> may be run directly on a high performance cluster thanks to the <strong>qsubshcom</strong> piece of software. (<a href="https://github.com/zhilizheng/qsubshcom" class="uri">https://github.com/zhilizheng/qsubshcom</a>)<br />
-In short, <strong>qsubshcom</strong> is a job submission wrapper that adapts automatically to the cluster system, which makes our code highly portable: you only need to change the paths to working directory or your own files.</p>
-<p>Steps that do not require much time/memory were usually run in an interactive session (they come without the <strong>qsubshcom</strong> syntax)</p>
+In short, <strong>qsubshcom</strong> is a job submission wrapper that adapts automatically to the cluster system, which makes our code highly portable: you only need to set up a few paths (see below) and run on you cluster.</p>
+<p>Steps that do not require much time/memory were sometimes run in an interactive session (they come without the <strong>qsubshcom</strong> syntax)</p>
 <p><strong>FreeSurfer 6.0</strong><br />
 Image processing requires FreeSurfer 6.0 (<a href="https://surfer.nmr.mgh.harvard.edu/" class="uri">https://surfer.nmr.mgh.harvard.edu/</a>).</p>
 <p><strong>ENIGMA-shape</strong><br />
 Subcortical processing further requires the scripts developped by Boris Gutman for the ENIGMA consortium (<a href="http://enigma.ini.usc.edu/protocols/imaging-protocols/" class="uri">http://enigma.ini.usc.edu/protocols/imaging-protocols/</a>).</p>
 <p><strong>OSCA</strong><br />
-Most of the analyses were performed using the <strong>OSCA</strong> software (<a href="https://cnsgenomics.com/software/osca/#Overview" class="uri">https://cnsgenomics.com/software/osca/#Overview</a>).</p>
+Most of the mixed model analyses were performed using the <strong>OSCA</strong> software (<a href="https://cnsgenomics.com/software/osca/#Overview" class="uri">https://cnsgenomics.com/software/osca/#Overview</a>).</p>
 <p><strong>GCTA</strong><br />
-For bivariate models, the option is yet to be implemented in OSCA so we detail the trick we use to run those models in GCTA (<a href="https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis" class="uri">https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis</a>).</p>
+For bivariate models, the option is yet to be implemented in OSCA. We used a trick to run those models in GCTA (<a href="https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis" class="uri">https://cnsgenomics.com/software/gcta/#BivariateGREMLanalysis</a>).</p>
 <p><strong>R</strong><br />
-Plots, some data management and penalised regression were performed using R3.3 to 3.6. See manuscript (or code) for full list of packages used.</p>
+Plots, some data management and penalised regression (LASSO) were performed using R version 3.3 to 3.6. See manuscript (or code) for full list of packages used.</p>
 </div>
 <div id="atlas-files" class="section level1">
 <h1><span class="header-section-number">2</span> Atlas files</h1>
-<p>We created a bunch of useful files to facilitate the analysis, for example to prune out vertices outside of the cortex, to relate each vertex to a cortical/subcortical region… They are available in the <strong>atlas</strong> folder of this repository</p>
+<p>We created a bunch of files to facilitate the analysis. They may be used to prune out vertices outside of the cortex or to relate each vertex to a cortical/subcortical region. They are available in the <strong>atlas</strong> folder of this repository.</p>
 </div>
 <div id="general-organisation-of-the-working-directory-wd" class="section level1">
 <h1><span class="header-section-number">3</span> General organisation of the working directory ${wd}</h1>
@@ -3122,7 +3124,7 @@ Baseline covariates</p>
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

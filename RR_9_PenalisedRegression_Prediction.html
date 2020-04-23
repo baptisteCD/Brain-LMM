@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>Penalised regression in R to compare with BLUP scores</title>
@@ -3063,36 +3063,37 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Penalised regression in R to compare with BLUP scores</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
 
 <div id="convert-full-bod-file-into-text" class="section level1">
 <h1><span class="header-section-number">1</span> Convert full bod file into text</h1>
-<p>Here, the bod file contains vertex-wise values for the discovery and replication sample</p>
+<p>Here, the bod file contains vertex-wise values for the discovery and replication sample.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/AllVertices.fwhm0.fsaverage.UKB15K --make-efile --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/AllVertices.fwhm0.fsaverage.UKB15K.txt &quot;</span> 1 80G MakeEfile 4:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span></a>
 <a class="sourceLine" id="cb1-3" data-line-number="3"> </a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="fu">mkdir</span> -p /gpfs1/scratch/30days/uqbcouvy/UKB_MRI/UKB_15K/LassoRidgePred</a></code></pre></div>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="fu">mkdir</span> -p <span class="va">${wd}</span>/LassoRidgePred</a></code></pre></div>
 </div>
 <div id="run-lasso-and-ridge-when-available-using-different-r-packages" class="section level1">
 <h1><span class="header-section-number">2</span> Run lasso and ridge (when available) using different R packages</h1>
-<p>We have made several scripts (<em>RR_9.0</em>) that use the different R packages that have implemented penalised regression<br />
-<strong>Note that with the size of the current data, only the <em>bigstatsr</em> package managed to perform the analyses</strong></p>
+<blockquote>
+<p>We have made several scripts (<em>RR_9.0</em>) that use the different R packages that have implemented penalised regression. <strong>Note that with the size of the current data, only the <em>bigstatsr</em> package managed to perform the analyses.</strong></p>
+</blockquote>
 <p>All R scripts require the following arguments:<br />
-<em>/working/directory/</em> # setwd() in R<br />
-<em>VertexFile.txt</em> # created above<br />
-<em>outputFolder</em><br />
-<em>variable name</em><br />
-<em>lasso or ridge</em><br />
-<em>n cpus to use</em></p>
+-<em>/working/directory/</em> : setwd() in R<br />
+-<em>VertexFile.txt</em> : created above<br />
+-<em>outputFolder</em><br />
+-<em>variable name</em><br />
+-<em>lasso or ridge</em><br />
+-<em>n cpus to use</em></p>
 <p>They require two lists of IDs in order to separate discovery and replication (train / test samples)<br />
-<em><span class="math inline"><em>w</em><em>d</em>/<em>B</em><em>o</em><em>d</em><em>F</em><em>i</em><em>l</em><em>e</em><em>s</em>/<em>I</em><em>D</em><sub><em>d</em></sub><em>i</em><em>s</em><em>c</em><em>o</em><em>v</em><em>e</em><em>r</em><em>y</em><sub><em>U</em></sub><em>K</em><em>B</em><em>a</em><em>n</em><em>a</em><em>l</em><em>y</em><em>s</em><em>i</em><em>s</em>.<em>t</em><em>x</em><em>t</em> * *</span>wd/BodFiles/ID_replication_UKBanalysis.txt</em></p>
+-<em>/<span class="math inline"><em>w</em><em>d</em>/<em>B</em><em>o</em><em>d</em><em>F</em><em>i</em><em>l</em><em>e</em><em>s</em>/<em>I</em><em>D</em><sub><em>d</em></sub><em>i</em><em>s</em><em>c</em><em>o</em><em>v</em><em>e</em><em>r</em><em>y</em><sub><em>U</em></sub><em>K</em><em>B</em><em>a</em><em>n</em><em>a</em><em>l</em><em>y</em><em>s</em><em>i</em><em>s</em>.<em>t</em><em>x</em><em>t</em> *  −  * /</span>{wd}/BodFiles/ID_replication_UKBanalysis.txt</em></p>
 </div>
 <div id="using-bigstatsr-package-as-in-manuscript" class="section level1">
 <h1><span class="header-section-number">3</span> Using bigstatsr package (as in manuscript)</h1>
-<p>To our knowledge, this package only allows for lasso regression</p>
+<p>To our knowledge, this package does not implement ridge regression</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="bu">cd</span> <span class="va">$wd</span>/LassoRidgePred</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"></a>
@@ -3104,32 +3105,23 @@ div.tocify {
 </div>
 <div id="using-glmnet-and-biglasso-packages" class="section level1">
 <h1><span class="header-section-number">4</span> Using glmnet and biglasso packages</h1>
-<p>For us, it only worked on a subset of the data but could not scale to the full sample</p>
+<p>For us, it only worked on a subset of the data but could not scale to the full sample. For <em>biglasso</em>, simply replace <em>RR_9.0_PenalisedRegressionFunction_glmnet.R</em> by the biglasso equivalent.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="bu">cd</span> <span class="va">$wd</span>/LassoRidgePred</a>
 <a class="sourceLine" id="cb3-3" data-line-number="3"></a>
 <a class="sourceLine" id="cb3-4" data-line-number="4"><span class="kw">for</span> <span class="ex">mod</span> in lasso ridge</a>
 <a class="sourceLine" id="cb3-5" data-line-number="5"><span class="kw">do</span> </a>
 <a class="sourceLine" id="cb3-6" data-line-number="6"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; Rscript --no-save 'RR_9.0_PenalisedRegressionFunction_glmnet.R' /working/directory AllVertices.fwhm0.fsaverage.UKB15K.txt LassoRidgePred </span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> &quot;</span><span class="va">${wd}</span><span class="st">&quot;/UKB_Phenotypes_signif_Bslne.txt) &quot;</span><span class="va">${mod}</span><span class="st">&quot; 1&quot;</span> 1 250G R_penalised_glmnet_<span class="va">${mod}</span> 48:00:00 <span class="st">&quot;-array=1-2 -acct=UQ-IMB-CNSG&quot;</span></a>
-<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="kw">done</span></a>
-<a class="sourceLine" id="cb3-8" data-line-number="8"></a>
-<a class="sourceLine" id="cb3-9" data-line-number="9"><span class="co"># On full sample </span></a>
-<a class="sourceLine" id="cb3-10" data-line-number="10"><span class="co"># Error in elnet(x, is.sparse, ix, jx, y, weights, offset, type.gaussian,  : </span></a>
-<a class="sourceLine" id="cb3-11" data-line-number="11"><span class="co">#  long vectors (argument 5) are not supported in .Fortran</span></a>
-<a class="sourceLine" id="cb3-12" data-line-number="12"><span class="co">#Calls: cv.glmnet -&gt; cv.glmnet.raw -&gt; glmnet -&gt; elnet</span></a>
-<a class="sourceLine" id="cb3-13" data-line-number="13"><span class="co">#Execution halted</span></a>
-<a class="sourceLine" id="cb3-14" data-line-number="14"></a>
-<a class="sourceLine" id="cb3-15" data-line-number="15"><span class="co"># Similarily using biglasso, we got the error:</span></a>
-<a class="sourceLine" id="cb3-16" data-line-number="16"></a>
-<a class="sourceLine" id="cb3-17" data-line-number="17"><span class="co">#Error in SetMatrixElements(x@address, as.double(j), as.double(i), as.double(value)) : </span></a>
-<a class="sourceLine" id="cb3-18" data-line-number="18"> <span class="co"># long vectors not supported yet: ../../src/include/Rinlinedfuns.h:522</span></a>
-<a class="sourceLine" id="cb3-19" data-line-number="19"><span class="co">#Calls: as.big.matrix ... [&lt;- -&gt; .local -&gt; SetElements.bm -&gt; SetMatrixElements</span></a>
-<a class="sourceLine" id="cb3-20" data-line-number="20"><span class="co">#Execution halted</span></a></code></pre></div>
+<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="kw">done</span></a></code></pre></div>
+<blockquote>
+<p>On full sample, we got error: Error in elnet(x, is.sparse, ix, jx, y, weights, offset, type.gaussian, : long vectors (argument 5) are not supported in .Fortran Calls: cv.glmnet -&gt; cv.glmnet.raw -&gt; glmnet -&gt; elnet Execution halted</p>
+</blockquote>
+<blockquote>
+<p>Similarily using biglasso, we got the error: Error in SetMatrixElements(<a href="mailto:x@address" class="email">x@address</a>, as.double(j), as.double(i), as.double(value)) : long vectors not supported yet: ../../src/include/Rinlinedfuns.h:522 Calls: as.big.matrix … [&lt;- -&gt; .local -&gt; SetElements.bm -&gt; SetMatrixElements Execution halted</p>
+</blockquote>
 </div>
-<div id="evaluate-prediction" class="section level1">
-<h1><span class="header-section-number">5</span> Evaluate prediction</h1>
-<div id="open-phenotype-files" class="section level2">
-<h2><span class="header-section-number">5.1</span> Open phenotype files</h2>
+<div id="open-phenotype-files" class="section level1">
+<h1><span class="header-section-number">5</span> Open phenotype files</h1>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># Open 15K - january2019 data</span></a>
 <a class="sourceLine" id="cb4-2" data-line-number="2">TT=<span class="kw">read.csv</span>(<span class="st">&quot;UKB_phenotypes_15K_allData_regVars_Jan2019Update.csv&quot;</span>)</a>
 <a class="sourceLine" id="cb4-3" data-line-number="3"><span class="co"># Using read_csv makes a df and does not allow to call TT[,columnName]</span></a>
@@ -3140,7 +3132,6 @@ div.tocify {
 <a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co"># Subset </span></a>
 <a class="sourceLine" id="cb4-9" data-line-number="9">signi=<span class="kw">read.table</span>(<span class="st">&quot;UKB_Phenotypes_signif_replication15K.txt&quot;</span>)</a>
 <a class="sourceLine" id="cb4-10" data-line-number="10">phe=phe[<span class="kw">which</span>(phe<span class="op">$</span>V4 <span class="op">%in%</span><span class="st"> </span>signi<span class="op">$</span>V1),]</a></code></pre></div>
-</div>
 </div>
 <div id="read-lasso-predictions" class="section level1">
 <h1><span class="header-section-number">6</span> Read Lasso predictions</h1>
@@ -3215,8 +3206,8 @@ div.tocify {
 <a class="sourceLine" id="cb6-40" data-line-number="40"><span class="co"># Write results</span></a>
 <a class="sourceLine" id="cb6-41" data-line-number="41"><span class="kw">write.csv</span>(res, <span class="st">&quot;Lasso_prediction_UKB_replicationsample5K.csv&quot;</span>)</a></code></pre></div>
 </div>
-<div id="final-plots---blup-vs.lasso" class="section level1">
-<h1><span class="header-section-number">8</span> Final plots - BLUP vs. LASSO</h1>
+<div id="plot---blup-vs.lasso-prediction-accuracy" class="section level1">
+<h1><span class="header-section-number">8</span> Plot - BLUP vs. LASSO prediction accuracy</h1>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">blup=<span class="kw">read.csv</span>(<span class="st">&quot;BLUP_prediction_UKBreplication_Bslne.csv&quot;</span>)</a>
 <a class="sourceLine" id="cb7-2" data-line-number="2">lasso=<span class="kw">read.csv</span>(<span class="st">&quot;Lasso_prediction_UKB_replicationsample5K.csv&quot;</span>)</a>
 <a class="sourceLine" id="cb7-3" data-line-number="3"></a>
@@ -3232,7 +3223,7 @@ div.tocify {
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

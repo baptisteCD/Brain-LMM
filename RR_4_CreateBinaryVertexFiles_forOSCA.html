@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>Create files for OSCA analyses</title>
@@ -3063,7 +3063,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Create files for OSCA analyses</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
@@ -3093,7 +3093,7 @@ div.tocify {
 </div>
 <div id="exclude-vertices-outside-of-cortex" class="section level1">
 <h1><span class="header-section-number">2</span> Exclude vertices outside of cortex</h1>
-<p>The VerticesToExclude files can be found in the atlas folder of the GitHub repository (<em>atlas</em> folder)</p>
+<p>The <em>VerticesToExclude</em> files can be found in the <em>atlas</em> folder of the GitHub repository. Another more data-driven way is to exclude vertices based on their standard deviation (vertices outside of cortex have 0 values for most-to-all subjects) using the <em>OSCA</em> option <em>–sd-min</em> (<a href="https://cnsgenomics.com/software/osca/#ManageBODfile(s)" class="uri">https://cnsgenomics.com/software/osca/#ManageBODfile(s)</a>).</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">for</span> <span class="ex">hemi</span> in lh rh</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">do</span></a>
@@ -3112,93 +3112,96 @@ div.tocify {
 <a class="sourceLine" id="cb3-5" data-line-number="5"><span class="kw">do</span></a>
 <a class="sourceLine" id="cb3-6" data-line-number="6"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot;.fwhm0.UKB.vertexQC --make-orm-bin --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot;.fwhm0.UKB.BRM --thread-num 5 &quot;</span> 5 30G <span class="va">${hemi}</span>_<span class="va">${moda}</span>_BRM_calculation 10:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a>
 <a class="sourceLine" id="cb3-7" data-line-number="7"><span class="kw">done</span></a>
-<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="kw">done</span> </a>
-<a class="sourceLine" id="cb3-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb3-10" data-line-number="10"><span class="co"># Extract mean and variance per probe </span></a>
-<a class="sourceLine" id="cb3-11" data-line-number="11"><span class="kw">for</span> <span class="ex">hemi</span> in lh rh</a>
-<a class="sourceLine" id="cb3-12" data-line-number="12"><span class="kw">do</span></a>
-<a class="sourceLine" id="cb3-13" data-line-number="13"><span class="kw">for</span> <span class="ex">moda</span> in thickness area thick LogJacs</a>
-<a class="sourceLine" id="cb3-14" data-line-number="14"><span class="kw">do</span></a>
-<a class="sourceLine" id="cb3-15" data-line-number="15"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot;.fwhm0.UKB.vertexQC --get-mean --get-variance --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot; &quot;</span> 1 8G <span class="va">${hemi}</span>_<span class="va">${moda}</span>_mean_var 48:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a>
-<a class="sourceLine" id="cb3-16" data-line-number="16"><span class="kw">done</span></a>
-<a class="sourceLine" id="cb3-17" data-line-number="17"><span class="kw">done</span> </a></code></pre></div>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="kw">done</span></a></code></pre></div>
 </div>
-<div id="combine-files-across-measurement-types-for-blup-analyses" class="section level1">
-<h1><span class="header-section-number">4</span> Combine files across measurement types (for BLUP analyses)</h1>
-<div id="requires-to-standardise-the-probes-first" class="section level2">
-<h2><span class="header-section-number">4.1</span> Requires to standardise the probes first</h2>
-<p>For all other analyses, the vertex files do not need to be standardised or OSCA does it for you automatically</p>
+<div id="extract-mean-and-variance-of-each-vertex" class="section level1">
+<h1><span class="header-section-number">4</span> Extract mean and variance of each vertex</h1>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw">for</span> <span class="ex">hemi</span> in lh rh</a>
 <a class="sourceLine" id="cb4-3" data-line-number="3"><span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="kw">for</span> <span class="ex">moda</span> in area thickness thick LogJacs</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="kw">for</span> <span class="ex">moda</span> in thickness area thick LogJacs</a>
 <a class="sourceLine" id="cb4-5" data-line-number="5"><span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot;.fwhm0.UKB.vertexQC --std-probe --make-bod --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/</span><span class="va">${hemi}</span><span class="st">.</span><span class="va">${moda}</span><span class="st">.fwhm0.UKB.BLUP.STD &quot;</span> 1 8G <span class="va">${hemi}</span>_<span class="va">${moda}</span>_STD_probes 02:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot;.fwhm0.UKB.vertexQC --get-mean --get-variance --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot; &quot;</span> 1 8G <span class="va">${hemi}</span>_<span class="va">${moda}</span>_mean_var 48:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a>
 <a class="sourceLine" id="cb4-7" data-line-number="7"><span class="kw">done</span></a>
-<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="kw">done</span></a></code></pre></div>
+<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="kw">done</span> </a></code></pre></div>
+</div>
+<div id="combine-files-across-measurement-types-for-blup-analyses" class="section level1">
+<h1><span class="header-section-number">5</span> Combine files across measurement types (for BLUP analyses)</h1>
+<div id="requires-to-standardise-the-probes-first" class="section level2">
+<h2><span class="header-section-number">5.1</span> Requires to standardise the probes first</h2>
+<p>For all other analyses, the vertex files either do not need to be standardised or <em>OSCA</em> does it for you automatically.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">for</span> <span class="ex">hemi</span> in lh rh</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="kw">do</span></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="kw">for</span> <span class="ex">moda</span> in area thickness thick LogJacs</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="kw">do</span></a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/&quot;</span><span class="va">${hemi}</span><span class="st">&quot;.&quot;</span><span class="va">${moda}</span><span class="st">&quot;.fwhm0.UKB.vertexQC --std-probe --make-bod --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/</span><span class="va">${hemi}</span><span class="st">.</span><span class="va">${moda}</span><span class="st">.fwhm0.UKB.BLUP.STD &quot;</span> 1 8G <span class="va">${hemi}</span>_<span class="va">${moda}</span>_STD_probes 02:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a>
+<a class="sourceLine" id="cb5-7" data-line-number="7"><span class="kw">done</span></a>
+<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="kw">done</span></a></code></pre></div>
 </div>
 <div id="merge-all-bod-files" class="section level2">
-<h2><span class="header-section-number">4.2</span> Merge all Bod files</h2>
-<p>You will need a text file mybod.flist which contains the path/names of the bod files (standardised) you want to merge</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile-flist &quot;</span><span class="va">${wd}</span><span class="st">&quot;/mybod.flist --make-bod --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/UKB_allVertices &quot;</span> 1 8G BLUP_allVertices 02:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
+<h2><span class="header-section-number">5.2</span> Merge all Bod files</h2>
+<p>You will need a text file <em>mybod.flist</em> which contains the path/names of the bod files (standardised) you want to merge</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --befile-flist &quot;</span><span class="va">${wd}</span><span class="st">&quot;/mybod.flist --make-bod --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/UKB_allVertices &quot;</span> 1 8G BLUP_allVertices 02:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
 </div>
 </div>
 <div id="merge-brms" class="section level1">
-<h1><span class="header-section-number">5</span> Merge BRMs</h1>
-<p>You will need a text file mergeBRM_All.txt which contains the path/names of the BRM you want to merge</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --merge-orm &quot;</span><span class="va">$wd</span><span class="st">&quot;/mergeBRM_All.txt --make-orm --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/allVerticesBRM &quot;</span> 1 8G CombineBRMs 02:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
+<h1><span class="header-section-number">6</span> Merge BRMs</h1>
+<p>You will need a text file <em>mergeBRM_All.txt</em> which contains the path/names of the BRM you want to merge</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --merge-orm &quot;</span><span class="va">$wd</span><span class="st">&quot;/mergeBRM_All.txt --make-orm --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/BodFiles/allVerticesBRM &quot;</span> 1 8G CombineBRMs 02:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
 </div>
 <div id="perform-qc-using-the-brms" class="section level1">
-<h1><span class="header-section-number">6</span> Perform QC using the BRMs</h1>
-<p>This section uses a R script to open the BRMs, produce plots and calculate BRM off-diagonal cut-off to use in QC</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="co"># Launch interactive session (syntax depends on your HPC, here using a PBSpro)</span></a>
-<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="ex">qsub</span> -I -X -l select=1:ncpus=1:mem=30GB -l walltime=05:00:00 -A UQ-IMB-CNSG</a>
-<a class="sourceLine" id="cb7-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="va">wd=</span><span class="st">&quot;working/directory&quot;</span></a>
-<a class="sourceLine" id="cb7-6" data-line-number="6"><span class="bu">cd</span> <span class="va">$wd</span></a>
-<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="ex">module</span> load R</a>
-<a class="sourceLine" id="cb7-8" data-line-number="8"><span class="ex">R</span></a></code></pre></div>
+<h1><span class="header-section-number">7</span> Perform QC using the BRMs</h1>
+<blockquote>
+<p>This section uses a R script to open the BRMs, produce plots and calculate BRM off-diagonal cut-off to use in QC.</p>
+</blockquote>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb8-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="co"># Launch interactive session (syntax depends on your HPC, here using a PBSpro)</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="ex">qsub</span> -I -X -l select=1:ncpus=1:mem=30GB -l walltime=05:00:00 -A UQ-IMB-CNSG</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="va">wd=</span><span class="st">&quot;working/directory&quot;</span></a>
+<a class="sourceLine" id="cb8-6" data-line-number="6"><span class="bu">cd</span> <span class="va">$wd</span></a>
+<a class="sourceLine" id="cb8-7" data-line-number="7"><span class="ex">module</span> load R</a>
+<a class="sourceLine" id="cb8-8" data-line-number="8"><span class="ex">R</span></a></code></pre></div>
 </div>
 <div id="example-of-running-the-r-script-on-two-brms" class="section level1">
-<h1><span class="header-section-number">7</span> Example of running the R script on two BRMs</h1>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">source</span>(<span class="st">&quot;RR_4.0_BRM_QC_functions.R&quot;</span>)</a>
-<a class="sourceLine" id="cb8-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="co"># Get variance of diagonal and off-diagonal elements</span></a>
-<a class="sourceLine" id="cb8-4" data-line-number="4">vals=<span class="ot">NULL</span></a>
-<a class="sourceLine" id="cb8-5" data-line-number="5">IDs2ExDiag=<span class="ot">NULL</span></a>
-<a class="sourceLine" id="cb8-6" data-line-number="6">  <span class="cf">for</span> (BRM <span class="cf">in</span> <span class="kw">c</span>(<span class="st">&quot;allVerticesBRM&quot;</span>, <span class="st">&quot;allVerticesBRM_QC&quot;</span>)){</a>
-<a class="sourceLine" id="cb8-7" data-line-number="7">  brm=<span class="kw">asBRM</span>(<span class="kw">ReadORMBin</span>(<span class="kw">paste0</span>( moda)))</a>
-<a class="sourceLine" id="cb8-8" data-line-number="8">  vals=<span class="kw">rbind</span>(vals, <span class="kw">c</span>(<span class="kw">mean</span>(<span class="kw">diag</span>(brm)),<span class="kw">var</span>(<span class="kw">diag</span>(brm)), <span class="kw">mean</span>(brm[<span class="kw">upper.tri</span>(brm)]),<span class="kw">var</span>(brm[<span class="kw">upper.tri</span>(brm)]) , <span class="kw">sqrt</span>(<span class="kw">var</span>(brm[<span class="kw">upper.tri</span>(brm)]))<span class="op">*</span><span class="dv">5</span> , <span class="kw">min</span>(brm[<span class="kw">upper.tri</span>(brm)]), <span class="kw">max</span>(brm[<span class="kw">upper.tri</span>(brm)]) ) )</a>
-<a class="sourceLine" id="cb8-9" data-line-number="9">  <span class="kw">print</span>(moda)</a>
-<a class="sourceLine" id="cb8-10" data-line-number="10">  <span class="kw">png</span>(<span class="kw">paste0</span>(<span class="st">&quot;HistogramBRM_&quot;</span>, BRM, <span class="st">&quot;.png&quot;</span>), <span class="dt">width =</span> <span class="dv">20</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="dt">res =</span> <span class="dv">400</span>)</a>
-<a class="sourceLine" id="cb8-11" data-line-number="11">  <span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</a>
-<a class="sourceLine" id="cb8-12" data-line-number="12">  <span class="kw">hist</span>(<span class="kw">diag</span>(brm), <span class="dt">main =</span> <span class="kw">paste0</span>( BRM, <span class="st">&quot; BRM diagonal&quot;</span>), <span class="dt">breaks=</span><span class="dv">500</span> )</a>
-<a class="sourceLine" id="cb8-13" data-line-number="13">  <span class="kw">hist</span>(brm[<span class="kw">upper.tri</span>(brm)], <span class="dt">main =</span> <span class="kw">paste0</span>(BRM, <span class="st">&quot; BRM diagonal&quot;</span>), <span class="dt">breaks=</span><span class="dv">5000</span> )</a>
-<a class="sourceLine" id="cb8-14" data-line-number="14">  <span class="kw">dev.off</span>()</a>
-<a class="sourceLine" id="cb8-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb8-16" data-line-number="16">}</a>
-<a class="sourceLine" id="cb8-17" data-line-number="17"><span class="kw">rownames</span>(vals)=<span class="kw">c</span>(<span class="st">&quot;allVerticesBRM&quot;</span>, <span class="st">&quot;allVerticesBRM_QC&quot;</span>)</a>
-<a class="sourceLine" id="cb8-18" data-line-number="18"><span class="kw">colnames</span>(vals)=<span class="kw">c</span>(<span class="st">&quot;Mean - diag&quot;</span>, <span class="st">&quot;Var - diag&quot;</span>, <span class="st">&quot;Mean - off diag&quot;</span>, <span class="st">&quot;Var - off diag&quot;</span>, <span class="st">&quot;BRM cutoff&quot;</span>, <span class="st">&quot;min off-diag&quot;</span>, <span class="st">&quot;max off-diag&quot;</span>)</a>
-<a class="sourceLine" id="cb8-19" data-line-number="19"><span class="kw">print</span>(vals)</a>
-<a class="sourceLine" id="cb8-20" data-line-number="20"></a>
-<a class="sourceLine" id="cb8-21" data-line-number="21"><span class="co"># FYI : BRM description from our &quot;replication UKB sample, N about 5K&quot;</span></a>
-<a class="sourceLine" id="cb8-22" data-line-number="22"><span class="co"># I found that those values were rather stable across samples</span></a>
-<a class="sourceLine" id="cb8-23" data-line-number="23"></a>
-<a class="sourceLine" id="cb8-24" data-line-number="24"><span class="co">#          Mean - diag  Var - diag Mean - off diag Var - off diag BRM cutoff     min off-diag max off-diag</span></a>
-<a class="sourceLine" id="cb8-25" data-line-number="25"><span class="co">#allVerticesBRM      1.0000000 0.020123953   -0.0002192982   0.0017715966  0.2104517  -0.4211293    0.6721468</span></a>
-<a class="sourceLine" id="cb8-26" data-line-number="26"><span class="co">#allVerticesBRM_QC   0.9654818 0.009724773    0.0005558369   0.0008534802  0.1460719  -0.2206390    0.2027178</span></a>
-<a class="sourceLine" id="cb8-27" data-line-number="27"></a>
-<a class="sourceLine" id="cb8-28" data-line-number="28"><span class="co">#See also QC_BRM_outliers() function for QC used in the discovery sample</span></a></code></pre></div>
+<h1><span class="header-section-number">8</span> Example of running the R script on two BRMs</h1>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">source</span>(<span class="st">&quot;RR_4.0_BRM_QC_functions.R&quot;</span>)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="co"># Get variance of diagonal and off-diagonal elements</span></a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">vals=<span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">IDs2ExDiag=<span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">  <span class="cf">for</span> (BRM <span class="cf">in</span> <span class="kw">c</span>(<span class="st">&quot;allVerticesBRM&quot;</span>, <span class="st">&quot;allVerticesBRM_QC&quot;</span>)){</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">  brm=<span class="kw">asBRM</span>(<span class="kw">ReadORMBin</span>(<span class="kw">paste0</span>( moda)))</a>
+<a class="sourceLine" id="cb9-8" data-line-number="8">  vals=<span class="kw">rbind</span>(vals, <span class="kw">c</span>(<span class="kw">mean</span>(<span class="kw">diag</span>(brm)),<span class="kw">var</span>(<span class="kw">diag</span>(brm)), <span class="kw">mean</span>(brm[<span class="kw">upper.tri</span>(brm)]),<span class="kw">var</span>(brm[<span class="kw">upper.tri</span>(brm)]) , <span class="kw">sqrt</span>(<span class="kw">var</span>(brm[<span class="kw">upper.tri</span>(brm)]))<span class="op">*</span><span class="dv">5</span> , <span class="kw">min</span>(brm[<span class="kw">upper.tri</span>(brm)]), <span class="kw">max</span>(brm[<span class="kw">upper.tri</span>(brm)]) ) )</a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">  <span class="kw">print</span>(moda)</a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">  <span class="kw">png</span>(<span class="kw">paste0</span>(<span class="st">&quot;HistogramBRM_&quot;</span>, BRM, <span class="st">&quot;.png&quot;</span>), <span class="dt">width =</span> <span class="dv">20</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="dt">res =</span> <span class="dv">400</span>)</a>
+<a class="sourceLine" id="cb9-11" data-line-number="11">  <span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</a>
+<a class="sourceLine" id="cb9-12" data-line-number="12">  <span class="kw">hist</span>(<span class="kw">diag</span>(brm), <span class="dt">main =</span> <span class="kw">paste0</span>( BRM, <span class="st">&quot; BRM diagonal&quot;</span>), <span class="dt">breaks=</span><span class="dv">500</span> )</a>
+<a class="sourceLine" id="cb9-13" data-line-number="13">  <span class="kw">hist</span>(brm[<span class="kw">upper.tri</span>(brm)], <span class="dt">main =</span> <span class="kw">paste0</span>(BRM, <span class="st">&quot; BRM diagonal&quot;</span>), <span class="dt">breaks=</span><span class="dv">5000</span> )</a>
+<a class="sourceLine" id="cb9-14" data-line-number="14">  <span class="kw">dev.off</span>()</a>
+<a class="sourceLine" id="cb9-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb9-16" data-line-number="16">}</a>
+<a class="sourceLine" id="cb9-17" data-line-number="17"><span class="kw">rownames</span>(vals)=<span class="kw">c</span>(<span class="st">&quot;allVerticesBRM&quot;</span>, <span class="st">&quot;allVerticesBRM_QC&quot;</span>)</a>
+<a class="sourceLine" id="cb9-18" data-line-number="18"><span class="kw">colnames</span>(vals)=<span class="kw">c</span>(<span class="st">&quot;Mean - diag&quot;</span>, <span class="st">&quot;Var - diag&quot;</span>, <span class="st">&quot;Mean - off diag&quot;</span>, <span class="st">&quot;Var - off diag&quot;</span>, <span class="st">&quot;BRM cutoff&quot;</span>, <span class="st">&quot;min off-diag&quot;</span>, <span class="st">&quot;max off-diag&quot;</span>)</a>
+<a class="sourceLine" id="cb9-19" data-line-number="19"><span class="kw">print</span>(vals)</a>
+<a class="sourceLine" id="cb9-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb9-21" data-line-number="21"><span class="co"># FYI : BRM description from our &quot;replication UKB sample, N about 5K&quot;</span></a>
+<a class="sourceLine" id="cb9-22" data-line-number="22"><span class="co"># I found that those values were rather stable across samples</span></a>
+<a class="sourceLine" id="cb9-23" data-line-number="23"></a>
+<a class="sourceLine" id="cb9-24" data-line-number="24"><span class="co">#          Mean - diag  Var - diag Mean - off diag Var - off diag BRM cutoff     min off-diag max off-diag</span></a>
+<a class="sourceLine" id="cb9-25" data-line-number="25"><span class="co">#allVerticesBRM      1.0000000 0.020123953   -0.0002192982   0.0017715966  0.2104517  -0.4211293    0.6721468</span></a>
+<a class="sourceLine" id="cb9-26" data-line-number="26"><span class="co">#allVerticesBRM_QC   0.9654818 0.009724773    0.0005558369   0.0008534802  0.1460719  -0.2206390    0.2027178</span></a>
+<a class="sourceLine" id="cb9-27" data-line-number="27"></a>
+<a class="sourceLine" id="cb9-28" data-line-number="28"><span class="co">#See also QC_BRM_outliers() function for QC used in the discovery sample</span></a></code></pre></div>
 </div>
 <div id="enforce-cutoff-on-off-diagonal-elements" class="section level1">
-<h1><span class="header-section-number">8</span> Enforce cutoff on off-diagonal elements</h1>
-<p>In this article (replication) we used a cutoff a 5SD from mean but this results in a quite stringent QC</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb9-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb9-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --reml --orm &quot;</span><span class="va">${wd}</span><span class="st">&quot;/allVerticesBRM --orm-cutoff 0.21 --orm-cutoff-2sides --make-orm --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/allVerticesBRM_QC &quot;</span> 1 4G BRM_QC 4:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
+<h1><span class="header-section-number">9</span> Enforce cutoff on off-diagonal elements</h1>
+<p>Note that in the replication sample we used a cutoff a 5SD from mean but this results in a quite stringent QC.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb10-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot; &quot;</span><span class="va">${bind}</span><span class="st">&quot;/osca --reml --orm &quot;</span><span class="va">${wd}</span><span class="st">&quot;/allVerticesBRM --orm-cutoff 0.21 --orm-cutoff-2sides --make-orm --out &quot;</span><span class="va">${wd}</span><span class="st">&quot;/allVerticesBRM_QC &quot;</span> 1 4G BRM_QC 4:00:00 <span class="st">&quot;-acct=UQ-IMB-CNSG&quot;</span> </a></code></pre></div>
 <p><br><br></p>
 </div>
 
@@ -3207,7 +3210,7 @@ div.tocify {
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

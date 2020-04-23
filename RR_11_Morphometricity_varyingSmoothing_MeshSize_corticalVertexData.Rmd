@@ -1,5 +1,5 @@
 ---
-title: "Run morphometricity analysis with different processing options (cortical smoothing and meshes)"
+title: "Run morphometricity analysis after different cortical processing"
 author: "by [Baptiste Couvy-Duchesne] - `r format(Sys.time(), '%d %B %Y')`"
 output:
   epuRate::PCTG:
@@ -42,7 +42,7 @@ done
 ${bind}/qsubshcom "echo \${TASK_ID}.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt) |; 
 for fsav in fsaverage3 fsaverage4 fsaverage5 fsaverage6 |;
 do |;
-"${bind}"/osca --reml --orm "${wd}"/BodFiles/allVerticesBRM.\${fsav}.QC --pheno "${wd}"/Phenotypes15K_Jan2019Update/UKB_phenotypes_reg_Bsln/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt)_reg.txt --out "${wd}"/BREML_Bsln_\${fsav}/FullModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt).outliers.UKB --reml-maxit 10000 --thread-num 5 |; 
+"${bind}"/osca --reml --orm "${wd}"/BodFiles/allVerticesBRM.\${fsav}.QC --pheno "${wd}"/Phenotypes15K/UKB_phenotypes_reg_Bsln/\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt)_reg.txt --out "${wd}"/BREML_Bsln_\${fsav}/FullModel.\$(sed -n \"\${TASK_ID}{p;q}\" "${wd}"/UKB_phenotypes_allList_Jan19Update.txt).outliers.UKB --reml-maxit 10000 --thread-num 5 |; 
 done " 5 4G FullModel_${fsav}_Bsln 48:00:00 "-array=1-224 -acct=UQ-IMB-CNSG" 
 
 ```
@@ -117,11 +117,9 @@ write.table(allPheno, paste0("BREML_UKB_T1T2_QC_reg_Bsln_", fsav, ".txt"), sep="
 
 ```
 
-# Compare results with fsaverage no smoothing
+# Compare results varying smoothing
 
-## Varying smoothing
-
-### Integrate fixed effect R2   
+## Put results together   
 
 ```{R, message=FALSE, eval=FALSE}
 
@@ -163,7 +161,7 @@ all$ub=all$ub*(1-all$r2)
 write.table(all, "REML_UKB_comparison_fwhm.txt", col.names=T, row.names=F)
 ```
 
-### Make plot
+## Make plot
 
 ```{R, message=FALSE, eval=FALSE}
 library(scales)
@@ -214,7 +212,9 @@ dev.off()
 
 ```
 
-## Mesh coarseness
+# Compare results varying mesh coarseness
+
+## Put results together
 
 ```{R, message=FALSE, eval=FALSE}
 
@@ -251,7 +251,7 @@ all$ub=all$ub*(1-all$r2)
 write.table(all, "REML_UKB_comparison_fsvarage.txt", col.names=T, row.names=F)
 ```
 
-### Make plot
+## Make plot
 
 ```{R, message=FALSE, eval=FALSE}
 

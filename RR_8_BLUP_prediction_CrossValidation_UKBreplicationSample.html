@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 22 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
 
 
 <title>Building and evaluating BLUP scores</title>
@@ -3063,25 +3063,26 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Building and evaluating BLUP scores</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 22 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
 
 </div>
 
 
 <div id="estimate-blup-scores-using-cross-validation-in-the-discovery-sample" class="section level1">
 <h1><span class="header-section-number">1</span> Estimate BLUP scores using cross-validation in the discovery sample</h1>
-<p>We have created 10 lists of IDs (<em>eid eid</em>) named <strong>UKB_ID_crossValidation_XX.txt</strong> that we use for the cross validation<br />
-Note that each list of IDs contain 9/10 of the sample (not the other way around), though OSCA could also accomodate it</p>
+<p>We have created 10 lists of IDs (<em>eid eid</em>) named <strong>UKB_ID_crossValidation_XX.txt</strong> that we use for the cross validation.<br />
+Note that each list of IDs contain 9/10 of the sample (not the other way around), though OSCA could also accomodate it.</p>
 <div id="estimate-blup-random-effect-values-for-individuals" class="section level2">
 <h2><span class="header-section-number">1.1</span> Estimate BLUP random effect values for individuals</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="va">od=${wd}</span>/BLUP_Bslne_bdsz <span class="co"># Where all blup outputs and intermediary files will be stored (as well as job log files)</span></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="bu">cd</span> <span class="va">${od}</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..10}</span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">do</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot;echo </span><span class="dt">\$</span><span class="st">{TASK_ID}.</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt) |; if [ ! -f </span><span class="va">${od}</span><span class="st">/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt).indi.blp ]; then |; </span><span class="va">${bind}</span><span class="st">/osca --reml --orm </span><span class="va">${wd}</span><span class="st">/allVerticesBRM_QC --pheno </span><span class="va">${wd}</span><span class="st">/Phenotypes_15K/UKB_phenotypes_reg_Bsln_bdsz/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt)_reg.txt --keep </span><span class="va">${wd}</span><span class="st">/UKB_ID_crossValidation_</span><span class="va">${batch}</span><span class="st">.txt --reml-pred-rand --out </span><span class="va">${od}</span><span class="st">/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt).</span><span class="va">${batch}</span><span class="st"> --reml-maxit 10000 |; fi &quot;</span> 1 4G BLUP_CV_indi_<span class="va">${batch}</span> 48:00:00 <span class="st">&quot;-array=1-58 -acct=UQ-IMB-CNSG&quot;</span> </a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="kw">done</span></a></code></pre></div>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="fu">mkdir</span> -p <span class="va">${wd}</span>/BLUP_Bslne_bdsz</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="va">od=${wd}</span>/BLUP_Bslne_bdsz </a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="bu">cd</span> <span class="va">${od}</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">for</span> <span class="ex">batch</span> in <span class="dt">{1..10}</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="kw">do</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="va">${bind}</span><span class="ex">/qsubshcom</span> <span class="st">&quot;echo </span><span class="dt">\$</span><span class="st">{TASK_ID}.</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt) |; if [ ! -f </span><span class="va">${od}</span><span class="st">/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt).indi.blp ]; then |; </span><span class="va">${bind}</span><span class="st">/osca --reml --orm </span><span class="va">${wd}</span><span class="st">/allVerticesBRM_QC --pheno </span><span class="va">${wd}</span><span class="st">/Phenotypes_15K/UKB_phenotypes_reg_Bsln_bdsz/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt)_reg.txt --keep </span><span class="va">${wd}</span><span class="st">/UKB_ID_crossValidation_</span><span class="va">${batch}</span><span class="st">.txt --reml-pred-rand --out </span><span class="va">${od}</span><span class="st">/</span><span class="dt">\$</span><span class="st">(sed -n </span><span class="dt">\&quot;\$</span><span class="st">{TASK_ID}{p;q}</span><span class="dt">\&quot;</span><span class="st"> </span><span class="va">${wd}</span><span class="st">/UKB_Phenotypes_signif_Bslne_bdsz.txt).</span><span class="va">${batch}</span><span class="st"> --reml-maxit 10000 |; fi &quot;</span> 1 4G BLUP_CV_indi_<span class="va">${batch}</span> 48:00:00 <span class="st">&quot;-array=1-58 -acct=UQ-IMB-CNSG&quot;</span> </a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="kw">done</span></a></code></pre></div>
 </div>
 <div id="estimate-blup-weights" class="section level2">
 <h2><span class="header-section-number">1.2</span> Estimate BLUP weights</h2>
@@ -3108,11 +3109,11 @@ Note that each list of IDs contain 9/10 of the sample (not the other way around)
 </div>
 <div id="blup-scores-from-full-discovery-sample-for-out-of-sample-prediction" class="section level1">
 <h1><span class="header-section-number">2</span> BLUP scores from full discovery sample for out of sample prediction</h1>
-<p>We now assume you have an indepdenent sample, processed the same way as the discovery sample<br />
-BOD files have been created for this independent sample, which may be another cohort (e.g. HCP) or a later release of the UKB (UKB replication) as per our manuscript</p>
-<div id="blup-weights-on-full-discovery-sample" class="section level2">
-<h2><span class="header-section-number">2.1</span> BLUP weights on full discovery sample</h2>
-<p>We have combined the 2 steps above into a single script for simplicity</p>
+<blockquote>
+<p>We now assume you have an indepdenent sample, processed the same way as the discovery sample. BOD files have been created for this independent sample, which may be another cohort (e.g. HCP) or a later release of the UKB (UKB replication) as per our manuscript.</p>
+</blockquote>
+<div id="calculate-blup-weights-from-full-discovery-sample" class="section level2">
+<h2><span class="header-section-number">2.1</span> Calculate BLUP weights from full discovery sample</h2>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb4-2" data-line-number="2"><span class="va">blupd=${wd}</span>/BLUP_Bslne_bdsz</a>
 <a class="sourceLine" id="cb4-3" data-line-number="3"></a>
@@ -3151,9 +3152,8 @@ BOD files have been created for this independent sample, which may be another co
 <a class="sourceLine" id="cb6-7" data-line-number="7"></a>
 <a class="sourceLine" id="cb6-8" data-line-number="8"><span class="co"># Subset </span></a>
 <a class="sourceLine" id="cb6-9" data-line-number="9">signi=<span class="kw">read.table</span>(<span class="st">&quot;UKB_Phenotypes_signif_Bslne.txt&quot;</span>)</a>
-<a class="sourceLine" id="cb6-10" data-line-number="10">phe=phe[<span class="kw">which</span>(phe<span class="op">$</span>V4 <span class="op">%in%</span><span class="st"> </span>signi<span class="op">$</span>V1),]</a>
-<a class="sourceLine" id="cb6-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb6-12" data-line-number="12"><span class="co"># In our example the first column is the predicted variable (used in training), the 4th column is the new variable that we are trying to predict. In some cases the names are the same, the differences come from different naming conventions in the ukbtools package between our data update.  </span></a></code></pre></div>
+<a class="sourceLine" id="cb6-10" data-line-number="10">phe=phe[<span class="kw">which</span>(phe<span class="op">$</span>V4 <span class="op">%in%</span><span class="st"> </span>signi<span class="op">$</span>V1),]</a></code></pre></div>
+<p>In this example the first column is the predicted variable (used in training), the 4th column is the new variable that we are trying to predict. In some cases the names are the same (prediction from UKB into UKB) but often the exact same variables are not available in the test sample.</p>
 </div>
 </div>
 <div id="read-blup-scores-and-merge-with-phenotype-file" class="section level1">
@@ -3213,13 +3213,11 @@ BOD files have been created for this independent sample, which may be another co
 <a class="sourceLine" id="cb8-32" data-line-number="32">mICV[BRSvarLoop, <span class="st">&quot;auc&quot;</span>]&lt;-<span class="ot">NA</span></a>
 <a class="sourceLine" id="cb8-33" data-line-number="33">mICV[BRSvarLoop, <span class="st">&quot;auc.se&quot;</span>]&lt;-<span class="ot">NA</span></a>
 <a class="sourceLine" id="cb8-34" data-line-number="34">}</a>
-<a class="sourceLine" id="cb8-35" data-line-number="35"></a>
-<a class="sourceLine" id="cb8-36" data-line-number="36">res&lt;-<span class="kw">rbind</span>(res,<span class="kw">cbind</span>(BRSvarLoop,  newVarLoop, mICV[BRSvarLoop,]) )</a>
+<a class="sourceLine" id="cb8-35" data-line-number="35">res&lt;-<span class="kw">rbind</span>(res,<span class="kw">cbind</span>(BRSvarLoop,  newVarLoop, mICV[BRSvarLoop,]) )</a>
+<a class="sourceLine" id="cb8-36" data-line-number="36">}</a>
 <a class="sourceLine" id="cb8-37" data-line-number="37"></a>
-<a class="sourceLine" id="cb8-38" data-line-number="38">}</a>
-<a class="sourceLine" id="cb8-39" data-line-number="39"></a>
-<a class="sourceLine" id="cb8-40" data-line-number="40"><span class="co"># Write results</span></a>
-<a class="sourceLine" id="cb8-41" data-line-number="41"><span class="kw">write.csv</span>(res, <span class="st">&quot;BLUP_prediction_UKBreplication_Bslne_bdsz.csv&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb8-38" data-line-number="38"><span class="co"># Write results</span></a>
+<a class="sourceLine" id="cb8-39" data-line-number="39"><span class="kw">write.csv</span>(res, <span class="st">&quot;BLUP_prediction_UKBreplication_Bslne_bdsz.csv&quot;</span>)</a></code></pre></div>
 <p><br><br></p>
 </div>
 </div>
@@ -3229,7 +3227,7 @@ BOD files have been created for this independent sample, which may be another co
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 22 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

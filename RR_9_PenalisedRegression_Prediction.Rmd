@@ -24,16 +24,15 @@ mkdir -p ${wd}/LassoRidgePred
 > We have made several scripts (*RR_9.0*) that use the different R packages that have implemented penalised regression. **Note that with the size of the current data, only the *bigstatsr* package managed to perform the analyses.**  
 
 All R scripts require the following arguments:   
--*/working/directory/* : setwd() in R  
--*VertexFile.txt* : created above    
--*outputFolder*  
--*variable name*  
--*lasso or ridge*  
--*n cpus to use*  
+1. */working/directory/* : setwd() in R  
+2. *VertexFile.txt* : created above    
+3. *outputFolder*  
+4. *variable name*  
+5. *lasso or ridge*  
+6. *n cpus to use*  
 
 They require two lists of IDs in order to separate discovery and replication (train / test samples)  
--*/${wd}/BodFiles/ID_discovery_UKBanalysis.txt*
--*/${wd}/BodFiles/ID_replication_UKBanalysis.txt*   
+Here: *ID_discovery_UKBanalysis.txt* and *ID_replication_UKBanalysis.txt*    
 
 # Using bigstatsr package (as in manuscript)
 

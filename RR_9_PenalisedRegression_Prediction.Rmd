@@ -176,7 +176,7 @@ write.csv(res, "Lasso_prediction_UKB_replicationsample5K.csv")
 
 ## Open blup scores and merge 
 
-```{r, message=FALSE}
+```{r, message=FALSE, eval=F}
 
 BRSdat=as.data.frame(TT$eid)
 colnames(BRSdat)="eid"
@@ -205,7 +205,7 @@ TT3=merge(TT2, BRSdat, by="eid")
 
 ## Normalise blup and lasso scores, calculate and test Absolute Error
 
-```{r, message=FALSE}
+```{r, message=FALSE, eval=F}
 
 # Extract Discovery sample
 TTD=TT[which(TT$DiscoverySample==1 & TT$DiscoveryQced==0),]
@@ -240,7 +240,7 @@ res[which(res[,2]<signifT),]
 
 # Final plots - BLUP vs. LASSO
 
-```{r, message=FALSE}
+```{r, message=FALSE, eval=F}
 
 blup=read.csv("BLUP_prediction_UKBreplication_Bslne.csv")
 lasso=read.csv("Lasso_prediction_UKB_replicationsample5K.csv")

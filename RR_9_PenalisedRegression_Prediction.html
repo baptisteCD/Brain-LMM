@@ -12,7 +12,7 @@
 
 
 
-<meta name="author" content="by [Baptiste Couvy-Duchesne] - 23 April 2020" />
+<meta name="author" content="by [Baptiste Couvy-Duchesne] - 28 April 2020" />
 
 
 <title>Penalised regression in R to compare with BLUP scores</title>
@@ -3063,7 +3063,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Penalised regression in R to compare with BLUP scores</h1>
-<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 23 April 2020 - </em></h4>
+<h4 class="author" style="text-align: center;"><em>by [Baptiste Couvy-Duchesne] - 28 April 2020 - </em></h4>
 
 </div>
 
@@ -3206,15 +3206,109 @@ Here: <em>ID_discovery_UKBanalysis.txt</em> and <em>ID_replication_UKBanalysis.t
 <a class="sourceLine" id="cb6-40" data-line-number="40"><span class="co"># Write results</span></a>
 <a class="sourceLine" id="cb6-41" data-line-number="41"><span class="kw">write.csv</span>(res, <span class="st">&quot;Lasso_prediction_UKB_replicationsample5K.csv&quot;</span>)</a></code></pre></div>
 </div>
-<div id="plot---blup-vs.lasso-prediction-accuracy" class="section level1">
-<h1><span class="header-section-number">8</span> Plot - BLUP vs. LASSO prediction accuracy</h1>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">blup=<span class="kw">read.csv</span>(<span class="st">&quot;BLUP_prediction_UKBreplication_Bslne.csv&quot;</span>)</a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">lasso=<span class="kw">read.csv</span>(<span class="st">&quot;Lasso_prediction_UKB_replicationsample5K.csv&quot;</span>)</a>
-<a class="sourceLine" id="cb7-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb7-4" data-line-number="4">all=<span class="kw">merge</span>(blup, lasso, <span class="dt">by.x=</span><span class="st">&quot;HCPvarLoop&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;newVarLoop&quot;</span>)</a>
-<a class="sourceLine" id="cb7-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb7-6" data-line-number="6"><span class="kw">plot</span>(all<span class="op">$</span>R2_final.x, all<span class="op">$</span>R2_final.y)</a>
-<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="kw">abline</span>(<span class="dt">a=</span><span class="dv">0</span>, <span class="dt">b=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="st">&quot;red&quot;</span>)</a></code></pre></div>
+<div id="compare-absolute-error-made-by-blup-and-lasso" class="section level1">
+<h1><span class="header-section-number">8</span> Compare absolute error made by BLUP and LASSO</h1>
+<div id="open-blup-scores-and-merge" class="section level2">
+<h2><span class="header-section-number">8.1</span> Open blup scores and merge</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">BRSdat=<span class="kw">as.data.frame</span>(TT<span class="op">$</span>eid)</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="kw">colnames</span>(BRSdat)=<span class="st">&quot;eid&quot;</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">varsWithBRS=<span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="cf">for</span> (iii <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(phe<span class="op">$</span>V4)){</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">  varLoop=phe<span class="op">$</span>V4[iii]</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">  BRSvarLoop=<span class="kw">paste0</span>(<span class="st">&quot;BRS_&quot;</span>, phe<span class="op">$</span>V4[iii])</a>
+<a class="sourceLine" id="cb7-9" data-line-number="9">  </a>
+<a class="sourceLine" id="cb7-10" data-line-number="10">  <span class="cf">if</span> (<span class="kw">file.exists</span>(<span class="kw">paste0</span>(<span class="st">&quot;BLUP_Bslne/BLUP.&quot;</span>, varLoop , <span class="st">&quot;.profile&quot;</span>) )){</a>
+<a class="sourceLine" id="cb7-11" data-line-number="11">  dat=<span class="kw">read.table</span>( <span class="kw">paste0</span>(<span class="st">&quot;BLUP_Bslne/BLUP.&quot;</span>, varLoop , <span class="st">&quot;.profile&quot;</span>) , <span class="dt">header=</span>T)</a>
+<a class="sourceLine" id="cb7-12" data-line-number="12">  dat<span class="op">$</span>FID=<span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb7-13" data-line-number="13">    dat<span class="op">$</span>PHENO=<span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb7-14" data-line-number="14">     dat<span class="op">$</span>CNT=<span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb7-15" data-line-number="15">  <span class="kw">colnames</span>(dat)=<span class="kw">c</span>(<span class="st">&quot;eid&quot;</span>, BRSvarLoop)</a>
+<a class="sourceLine" id="cb7-16" data-line-number="16">  BRSdat=<span class="kw">merge</span>(BRSdat, dat, <span class="dt">by=</span><span class="st">&quot;eid&quot;</span>)</a>
+<a class="sourceLine" id="cb7-17" data-line-number="17">  varsWithBRS=<span class="kw">c</span>(varsWithBRS, phe<span class="op">$</span>V4[iii])</a>
+<a class="sourceLine" id="cb7-18" data-line-number="18">  }</a>
+<a class="sourceLine" id="cb7-19" data-line-number="19">}</a>
+<a class="sourceLine" id="cb7-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb7-21" data-line-number="21"><span class="co"># Add scores to the table</span></a>
+<a class="sourceLine" id="cb7-22" data-line-number="22">TT3=<span class="kw">merge</span>(TT2, BRSdat, <span class="dt">by=</span><span class="st">&quot;eid&quot;</span>)</a></code></pre></div>
+</div>
+<div id="normalise-blup-and-lasso-scores-calculate-and-test-absolute-error" class="section level2">
+<h2><span class="header-section-number">8.2</span> Normalise blup and lasso scores, calculate and test Absolute Error</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="co"># Extract Discovery sample</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">TTD=TT[<span class="kw">which</span>(TT<span class="op">$</span>DiscoverySample<span class="op">==</span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>TT<span class="op">$</span>DiscoveryQced<span class="op">==</span><span class="dv">0</span>),]</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">res=<span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="cf">for</span> (pheno <span class="cf">in</span> phe<span class="op">$</span>V4){</a>
+<a class="sourceLine" id="cb8-6" data-line-number="6"> </a>
+<a class="sourceLine" id="cb8-7" data-line-number="7">  <span class="co"># Scale BLUP and LASSO score using mean and sd from discovery sample </span></a>
+<a class="sourceLine" id="cb8-8" data-line-number="8">  TT3[,<span class="kw">paste0</span>(<span class="st">&quot;BRS_&quot;</span>, pheno, <span class="st">&quot;_std&quot;</span>)]=<span class="kw">scale</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;BRS_&quot;</span>, pheno)])<span class="op">*</span><span class="kw">sd</span>(TTD[,pheno], <span class="dt">na.rm =</span> T)<span class="op">+</span><span class="kw">mean</span>(TTD[,pheno], <span class="dt">na.rm =</span> T)</a>
+<a class="sourceLine" id="cb8-9" data-line-number="9">  TT3[,<span class="kw">paste0</span>(<span class="st">&quot;BRS_lasso_&quot;</span>, pheno, <span class="st">&quot;_std&quot;</span>)]=<span class="kw">scale</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;BRS_lasso_&quot;</span>, pheno)])<span class="op">*</span><span class="kw">sd</span>(TTD[,pheno], <span class="dt">na.rm =</span> T)<span class="op">+</span><span class="kw">mean</span>(TTD[,pheno], <span class="dt">na.rm =</span> T)</a>
+<a class="sourceLine" id="cb8-10" data-line-number="10">  </a>
+<a class="sourceLine" id="cb8-11" data-line-number="11">  <span class="co"># Calculate Absolute Error</span></a>
+<a class="sourceLine" id="cb8-12" data-line-number="12">  TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_BLP_&quot;</span>, pheno)]=<span class="kw">abs</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;BRS_&quot;</span>, pheno, <span class="st">&quot;_std&quot;</span>)] <span class="op">-</span><span class="st"> </span>TT3[,<span class="kw">paste0</span>( pheno)] )</a>
+<a class="sourceLine" id="cb8-13" data-line-number="13">  TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_LASSO_&quot;</span>, pheno)]=<span class="kw">abs</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;BRS_lasso_&quot;</span>, pheno, <span class="st">&quot;_std&quot;</span>)] <span class="op">-</span><span class="st"> </span>TT3[,<span class="kw">paste0</span>( pheno)] )</a>
+<a class="sourceLine" id="cb8-14" data-line-number="14">   </a>
+<a class="sourceLine" id="cb8-15" data-line-number="15">  <span class="co"># Perform paired t-test</span></a>
+<a class="sourceLine" id="cb8-16" data-line-number="16">tt=<span class="kw">t.test</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_BLP_&quot;</span>, pheno)], TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_LASSO_&quot;</span>, pheno)], <span class="dt">paired =</span> T)</a>
+<a class="sourceLine" id="cb8-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb8-18" data-line-number="18">  <span class="co"># Wilcoxon test on median (less sensitive to extreme values)</span></a>
+<a class="sourceLine" id="cb8-19" data-line-number="19">ww=<span class="kw">wilcox.test</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_BLP_&quot;</span>, pheno)], TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_LASSO_&quot;</span>, pheno)], <span class="dt">paired =</span> T)</a>
+<a class="sourceLine" id="cb8-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb8-21" data-line-number="21">  <span class="co"># Store results</span></a>
+<a class="sourceLine" id="cb8-22" data-line-number="22">res=<span class="kw">rbind</span>(res,<span class="kw">c</span>(pheno, tt<span class="op">$</span>p.value,ww<span class="op">$</span>p.value, <span class="kw">mean</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_BLP_&quot;</span>, pheno)], <span class="dt">na.rm =</span> T), <span class="kw">mean</span>(TT3[,<span class="kw">paste0</span>(<span class="st">&quot;AE_LASSO_&quot;</span>, pheno)], <span class="dt">na.rm =</span> T) ))</a>
+<a class="sourceLine" id="cb8-23" data-line-number="23"></a>
+<a class="sourceLine" id="cb8-24" data-line-number="24">}</a>
+<a class="sourceLine" id="cb8-25" data-line-number="25"></a>
+<a class="sourceLine" id="cb8-26" data-line-number="26"><span class="kw">colnames</span>(res)=<span class="kw">c</span>(<span class="st">&quot;pheno&quot;</span>, <span class="st">&quot;pval_ttest&quot;</span>,<span class="st">&quot;pval_wilcox&quot;</span>, <span class="st">&quot;mae_blup&quot;</span>, <span class="st">&quot;mae_lasso&quot;</span>)</a>
+<a class="sourceLine" id="cb8-27" data-line-number="27">signifT=<span class="fl">0.05</span><span class="op">/</span><span class="dv">58</span></a>
+<a class="sourceLine" id="cb8-28" data-line-number="28">res[<span class="kw">which</span>(res[,<span class="dv">2</span>]<span class="op">&lt;</span>signifT),]</a></code></pre></div>
+</div>
+</div>
+<div id="final-plots---blup-vs.lasso" class="section level1">
+<h1><span class="header-section-number">9</span> Final plots - BLUP vs. LASSO</h1>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">blup=<span class="kw">read.csv</span>(<span class="st">&quot;BLUP_prediction_UKBreplication_Bslne.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">lasso=<span class="kw">read.csv</span>(<span class="st">&quot;Lasso_prediction_UKB_replicationsample5K.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">all=<span class="kw">merge</span>(blup, lasso, <span class="dt">by.x=</span><span class="st">&quot;HCPvarLoop&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;newVarLoop&quot;</span> )</a>
+<a class="sourceLine" id="cb9-5" data-line-number="5"><span class="co">#all=all[which(all$pval.x &lt;0.1 &amp; all$pval.x&gt;0.01),]</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="co"># Calculate SE and CI of R2</span></a>
+<a class="sourceLine" id="cb9-8" data-line-number="8"><span class="co"># Using exponential transformation - see Algina et al., 2010</span></a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">all<span class="op">$</span>z=<span class="kw">log</span>( (<span class="dv">1</span><span class="op">+</span><span class="kw">sqrt</span>(all<span class="op">$</span>R2_final.x)) <span class="op">/</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span><span class="kw">sqrt</span>(all<span class="op">$</span>R2_final.x)) )</a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">all<span class="op">$</span>z1=all<span class="op">$</span>z<span class="dv">-2</span><span class="op">*</span><span class="fl">1.96</span><span class="op">/</span><span class="kw">sqrt</span>(all<span class="op">$</span>N)</a>
+<a class="sourceLine" id="cb9-11" data-line-number="11">all<span class="op">$</span>z2=all<span class="op">$</span>z<span class="op">+</span><span class="dv">2</span><span class="op">*</span><span class="fl">1.96</span><span class="op">/</span><span class="kw">sqrt</span>(all<span class="op">$</span>N)</a>
+<a class="sourceLine" id="cb9-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb9-13" data-line-number="13">all<span class="op">$</span>lb.x=((<span class="kw">exp</span>(all<span class="op">$</span>z1)<span class="op">-</span><span class="dv">1</span>)<span class="op">/</span>(<span class="kw">exp</span>(all<span class="op">$</span>z1)<span class="op">+</span><span class="dv">1</span>))<span class="op">**</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb9-14" data-line-number="14">all<span class="op">$</span>lb.x[<span class="kw">which</span>(all<span class="op">$</span>z1<span class="op">&lt;</span><span class="dv">0</span>)]=<span class="dv">0</span></a>
+<a class="sourceLine" id="cb9-15" data-line-number="15">all<span class="op">$</span>ub.x=((<span class="kw">exp</span>(all<span class="op">$</span>z2)<span class="op">-</span><span class="dv">1</span>)<span class="op">/</span>(<span class="kw">exp</span>(all<span class="op">$</span>z2)<span class="op">+</span><span class="dv">1</span>))<span class="op">**</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb9-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb9-17" data-line-number="17"><span class="co"># LASSO</span></a>
+<a class="sourceLine" id="cb9-18" data-line-number="18">all<span class="op">$</span>z=<span class="kw">log</span>( (<span class="dv">1</span><span class="op">+</span><span class="kw">sqrt</span>(all<span class="op">$</span>R2_final.y)) <span class="op">/</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span><span class="kw">sqrt</span>(all<span class="op">$</span>R2_final.y)) )</a>
+<a class="sourceLine" id="cb9-19" data-line-number="19">all<span class="op">$</span>z1=all<span class="op">$</span>z<span class="dv">-2</span><span class="op">*</span><span class="fl">1.96</span><span class="op">/</span><span class="kw">sqrt</span>(all<span class="op">$</span>N)</a>
+<a class="sourceLine" id="cb9-20" data-line-number="20">all<span class="op">$</span>z2=all<span class="op">$</span>z<span class="op">+</span><span class="dv">2</span><span class="op">*</span><span class="fl">1.96</span><span class="op">/</span><span class="kw">sqrt</span>(all<span class="op">$</span>N)</a>
+<a class="sourceLine" id="cb9-21" data-line-number="21"></a>
+<a class="sourceLine" id="cb9-22" data-line-number="22">all<span class="op">$</span>lb.y=((<span class="kw">exp</span>(all<span class="op">$</span>z1)<span class="op">-</span><span class="dv">1</span>)<span class="op">/</span>(<span class="kw">exp</span>(all<span class="op">$</span>z1)<span class="op">+</span><span class="dv">1</span>))<span class="op">**</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb9-23" data-line-number="23">all<span class="op">$</span>lb.y[<span class="kw">which</span>(all<span class="op">$</span>z1<span class="op">&lt;</span><span class="dv">0</span>)]=<span class="dv">0</span></a>
+<a class="sourceLine" id="cb9-24" data-line-number="24">all<span class="op">$</span>ub.y=((<span class="kw">exp</span>(all<span class="op">$</span>z2)<span class="op">-</span><span class="dv">1</span>)<span class="op">/</span>(<span class="kw">exp</span>(all<span class="op">$</span>z2)<span class="op">+</span><span class="dv">1</span>))<span class="op">**</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb9-25" data-line-number="25"></a>
+<a class="sourceLine" id="cb9-26" data-line-number="26"><span class="co"># Add labels for plotting</span></a>
+<a class="sourceLine" id="cb9-27" data-line-number="27">phe=<span class="kw">read.csv</span>(<span class="st">&quot;UKB_allvars_categories_fancylabels_Jan19Update.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb9-28" data-line-number="28">all=<span class="kw">merge</span>(all, phe, <span class="dt">by.x=</span><span class="st">&quot;HCPvarLoop&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;V4&quot;</span>)</a>
+<a class="sourceLine" id="cb9-29" data-line-number="29"></a>
+<a class="sourceLine" id="cb9-30" data-line-number="30"><span class="kw">png</span>(<span class="st">&quot;Prediction_BLUP_LASSO_replicationUKB.png&quot;</span>, <span class="dt">width =</span> <span class="dv">15</span>, <span class="dt">height =</span> <span class="dv">15</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="dt">res =</span> <span class="dv">400</span>)</a>
+<a class="sourceLine" id="cb9-31" data-line-number="31"><span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">1</span>))</a>
+<a class="sourceLine" id="cb9-32" data-line-number="32"><span class="kw">plot</span>(all<span class="op">$</span>R2_final.x, all<span class="op">$</span>R2_final.y, <span class="dt">pch=</span><span class="dv">20</span>, <span class="dt">cex=</span><span class="fl">1.5</span>,<span class="dt">ylab=</span><span class="st">&quot;Prediction R2 from LASSO&quot;</span>, <span class="dt">xlab=</span><span class="st">&quot;Prediction R2 from BLUP&quot;</span>, <span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>,<span class="fl">0.6</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">0</span>,<span class="fl">0.6</span>) )</a>
+<a class="sourceLine" id="cb9-33" data-line-number="33"><span class="kw">abline</span>(<span class="dt">a=</span><span class="dv">0</span>, <span class="dt">b=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="st">&quot;red&quot;</span>)</a>
+<a class="sourceLine" id="cb9-34" data-line-number="34"></a>
+<a class="sourceLine" id="cb9-35" data-line-number="35"><span class="co"># Variable labels</span></a>
+<a class="sourceLine" id="cb9-36" data-line-number="36"><span class="kw">text</span>(all<span class="op">$</span>ub.x[<span class="kw">which</span>(all<span class="op">$</span>R2_final.x<span class="op">&gt;</span><span class="fl">0.05</span>)], all<span class="op">$</span>R2_final.y[<span class="kw">which</span>(all<span class="op">$</span>R2_final.x<span class="op">&gt;</span><span class="fl">0.05</span>)], <span class="dt">labels =</span>all<span class="op">$</span>V3[<span class="kw">which</span>(all<span class="op">$</span>R2_final.x<span class="op">&gt;</span><span class="fl">0.05</span>)], <span class="dt">pos =</span> <span class="dv">4</span>, <span class="dt">cex=</span><span class="fl">0.5</span> )</a>
+<a class="sourceLine" id="cb9-37" data-line-number="37"></a>
+<a class="sourceLine" id="cb9-38" data-line-number="38"><span class="co"># Confidence intervals</span></a>
+<a class="sourceLine" id="cb9-39" data-line-number="39"><span class="kw">arrows</span>(<span class="dt">y0 =</span> all<span class="op">$</span>lb.y , <span class="dt">x0 =</span> all<span class="op">$</span>R2_final.x, <span class="dt">y1 =</span> all<span class="op">$</span>ub.y, <span class="dt">x1 =</span>all<span class="op">$</span>R2_final.x, <span class="dt">code =</span> <span class="dv">3</span>, <span class="dt">angle =</span> <span class="dv">90</span>,<span class="dt">length =</span> <span class="fl">0.05</span>  )</a>
+<a class="sourceLine" id="cb9-40" data-line-number="40"><span class="kw">arrows</span>(<span class="dt">x0 =</span> all<span class="op">$</span>lb.x , <span class="dt">y0 =</span> all<span class="op">$</span>R2_final.y, <span class="dt">x1 =</span> all<span class="op">$</span>ub.x, <span class="dt">y1 =</span>all<span class="op">$</span>R2_final.y, <span class="dt">code =</span> <span class="dv">3</span>, <span class="dt">angle =</span> <span class="dv">90</span>,<span class="dt">length =</span> <span class="fl">0.05</span>  )</a>
+<a class="sourceLine" id="cb9-41" data-line-number="41"></a>
+<a class="sourceLine" id="cb9-42" data-line-number="42"><span class="kw">dev.off</span>()</a></code></pre></div>
 <p><br><br></p>
 </div>
 
@@ -3223,7 +3317,7 @@ Here: <em>ID_discovery_UKBanalysis.txt</em> and <em>ID_replication_UKBanalysis.t
  
 <br><br><br><br>
 <hr />
-<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 23 April 2020</a></p>
+<p style="text-align: center;">A work by <a href="https://github.com/">by [Baptiste Couvy-Duchesne] - 28 April 2020</a></p>
 <p style="text-align: center;"><span style="color: #808080;"><em></em></span></p>
 
 <!-- Add icon library -->

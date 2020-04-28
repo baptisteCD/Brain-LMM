@@ -172,17 +172,118 @@ write.csv(res, "Lasso_prediction_UKB_replicationsample5K.csv")
 
 ```
 
-# Plot - BLUP vs. LASSO prediction accuracy
+# Compare absolute error made by BLUP and LASSO
 
-```{r, message=FALSE, eval=F}
+## Open blup scores and merge 
+
+```{r, message=FALSE}
+
+BRSdat=as.data.frame(TT$eid)
+colnames(BRSdat)="eid"
+varsWithBRS=NULL
+
+for (iii in 1:length(phe$V4)){
+
+  varLoop=phe$V4[iii]
+  BRSvarLoop=paste0("BRS_", phe$V4[iii])
+  
+  if (file.exists(paste0("BLUP_Bslne/BLUP.", varLoop , ".profile") )){
+  dat=read.table( paste0("BLUP_Bslne/BLUP.", varLoop , ".profile") , header=T)
+  dat$FID=NULL
+    dat$PHENO=NULL
+     dat$CNT=NULL
+  colnames(dat)=c("eid", BRSvarLoop)
+  BRSdat=merge(BRSdat, dat, by="eid")
+  varsWithBRS=c(varsWithBRS, phe$V4[iii])
+  }
+}
+
+# Add scores to the table
+TT3=merge(TT2, BRSdat, by="eid")
+
+```
+
+## Normalise blup and lasso scores, calculate and test Absolute Error
+
+```{r, message=FALSE}
+
+# Extract Discovery sample
+TTD=TT[which(TT$DiscoverySample==1 & TT$DiscoveryQced==0),]
+
+res=NULL
+for (pheno in phe$V4){
+ 
+  # Scale BLUP and LASSO score using mean and sd from discovery sample 
+  TT3[,paste0("BRS_", pheno, "_std")]=scale(TT3[,paste0("BRS_", pheno)])*sd(TTD[,pheno], na.rm = T)+mean(TTD[,pheno], na.rm = T)
+  TT3[,paste0("BRS_lasso_", pheno, "_std")]=scale(TT3[,paste0("BRS_lasso_", pheno)])*sd(TTD[,pheno], na.rm = T)+mean(TTD[,pheno], na.rm = T)
+  
+  # Calculate Absolute Error
+  TT3[,paste0("AE_BLP_", pheno)]=abs(TT3[,paste0("BRS_", pheno, "_std")] - TT3[,paste0( pheno)] )
+  TT3[,paste0("AE_LASSO_", pheno)]=abs(TT3[,paste0("BRS_lasso_", pheno, "_std")] - TT3[,paste0( pheno)] )
+   
+  # Perform paired t-test
+tt=t.test(TT3[,paste0("AE_BLP_", pheno)], TT3[,paste0("AE_LASSO_", pheno)], paired = T)
+
+  # Wilcoxon test on median (less sensitive to extreme values)
+ww=wilcox.test(TT3[,paste0("AE_BLP_", pheno)], TT3[,paste0("AE_LASSO_", pheno)], paired = T)
+
+  # Store results
+res=rbind(res,c(pheno, tt$p.value,ww$p.value, mean(TT3[,paste0("AE_BLP_", pheno)], na.rm = T), mean(TT3[,paste0("AE_LASSO_", pheno)], na.rm = T) ))
+
+}
+
+colnames(res)=c("pheno", "pval_ttest","pval_wilcox", "mae_blup", "mae_lasso")
+signifT=0.05/58
+res[which(res[,2]<signifT),]
+
+```
+
+# Final plots - BLUP vs. LASSO
+
+```{r, message=FALSE}
 
 blup=read.csv("BLUP_prediction_UKBreplication_Bslne.csv")
 lasso=read.csv("Lasso_prediction_UKB_replicationsample5K.csv")
 
-all=merge(blup, lasso, by.x="HCPvarLoop", by.y="newVarLoop")
+all=merge(blup, lasso, by.x="HCPvarLoop", by.y="newVarLoop" )
+#all=all[which(all$pval.x <0.1 & all$pval.x>0.01),]
 
-plot(all$R2_final.x, all$R2_final.y)
+# Calculate SE and CI of R2
+# Using exponential transformation - see Algina et al., 2010
+all$z=log( (1+sqrt(all$R2_final.x)) / (1-sqrt(all$R2_final.x)) )
+all$z1=all$z-2*1.96/sqrt(all$N)
+all$z2=all$z+2*1.96/sqrt(all$N)
+
+all$lb.x=((exp(all$z1)-1)/(exp(all$z1)+1))**2
+all$lb.x[which(all$z1<0)]=0
+all$ub.x=((exp(all$z2)-1)/(exp(all$z2)+1))**2
+
+# LASSO
+all$z=log( (1+sqrt(all$R2_final.y)) / (1-sqrt(all$R2_final.y)) )
+all$z1=all$z-2*1.96/sqrt(all$N)
+all$z2=all$z+2*1.96/sqrt(all$N)
+
+all$lb.y=((exp(all$z1)-1)/(exp(all$z1)+1))**2
+all$lb.y[which(all$z1<0)]=0
+all$ub.y=((exp(all$z2)-1)/(exp(all$z2)+1))**2
+
+# Add labels for plotting
+phe=read.csv("UKB_allvars_categories_fancylabels_Jan19Update.csv")
+all=merge(all, phe, by.x="HCPvarLoop", by.y="V4")
+
+png("Prediction_BLUP_LASSO_replicationUKB.png", width = 15, height = 15, units = "cm", res = 400)
+par(mar=c(4,4,1,1))
+plot(all$R2_final.x, all$R2_final.y, pch=20, cex=1.5,ylab="Prediction R2 from LASSO", xlab="Prediction R2 from BLUP", xlim = c(0,0.6), ylim = c(0,0.6) )
 abline(a=0, b=1, col="red")
+
+# Variable labels
+text(all$ub.x[which(all$R2_final.x>0.05)], all$R2_final.y[which(all$R2_final.x>0.05)], labels =all$V3[which(all$R2_final.x>0.05)], pos = 4, cex=0.5 )
+
+# Confidence intervals
+arrows(y0 = all$lb.y , x0 = all$R2_final.x, y1 = all$ub.y, x1 =all$R2_final.x, code = 3, angle = 90,length = 0.05  )
+arrows(x0 = all$lb.x , y0 = all$R2_final.y, x1 = all$ub.x, y1 =all$R2_final.y, code = 3, angle = 90,length = 0.05  )
+
+dev.off()
 
 ```
 
